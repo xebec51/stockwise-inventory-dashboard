@@ -1,65 +1,189 @@
-import Image from "next/image";
+import Link from "next/link";
+import {
+  ArrowRight,
+  Boxes,
+  ClipboardCheck,
+  Factory,
+  FileSpreadsheet,
+  QrCode,
+  ShieldCheck,
+  Warehouse,
+} from "lucide-react";
+
+import { buttonVariants } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+
+const highlights = [
+  {
+    title: "Inventory control",
+    description:
+      "Track products, stock movement, and warehouse readiness through a structured dashboard foundation.",
+    icon: Warehouse,
+  },
+  {
+    title: "Approval workflows",
+    description:
+      "Prepare space for manager approvals, transaction review states, and auditable stock movement flows.",
+    icon: ClipboardCheck,
+  },
+  {
+    title: "Supplier operations",
+    description:
+      "Model supplier coordination, restock planning, and future ratings in a single operational workspace.",
+    icon: Factory,
+  },
+  {
+    title: "Reporting layer",
+    description:
+      "Lay the groundwork for exportable reports, QR labels, and portfolio-grade analytics surfaces.",
+    icon: FileSpreadsheet,
+  },
+];
+
+const modules = [
+  "Dashboard analytics",
+  "Product and category catalog",
+  "Incoming and outgoing transactions",
+  "Restock order coordination",
+  "Suppliers and ratings",
+  "QR labels and reports",
+];
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+    <main className="relative overflow-hidden">
+      <div className="absolute inset-x-0 top-0 -z-10 h-[32rem] bg-[radial-gradient(circle_at_top,rgba(14,116,144,0.16),transparent_55%),linear-gradient(180deg,rgba(255,255,255,0.96),rgba(255,255,255,0.78))] dark:bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.12),transparent_45%),linear-gradient(180deg,rgba(9,9,11,0.96),rgba(9,9,11,0.82))]" />
+
+      <section className="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-6 pb-16 pt-6 sm:px-8 lg:px-10">
+        <header className="flex items-center justify-between rounded-full border border-border/70 bg-background/80 px-4 py-3 shadow-sm shadow-black/5 backdrop-blur">
+          <div className="flex items-center gap-3">
+            <div className="flex size-10 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-sm">
+              <Boxes className="size-5" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold tracking-tight">StockWise</p>
+              <p className="text-xs text-muted-foreground">
+                Inventory intelligence dashboard
+              </p>
+            </div>
+          </div>
+
+          <div className="hidden items-center gap-3 md:flex">
+            <Badge variant="outline">Portfolio-grade UI foundation</Badge>
+            <Link
+              href="/dashboard"
+              className={cn(buttonVariants({ variant: "default", size: "sm" }))}
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+              Open Dashboard
+            </Link>
+          </div>
+        </header>
+
+        <div className="grid flex-1 items-center gap-12 py-14 lg:grid-cols-[1.15fr_0.85fr] lg:py-20">
+          <div className="space-y-8">
+            <div className="space-y-4">
+              <Badge variant="secondary" className="gap-1.5 px-3 py-1">
+                <ShieldCheck className="size-3.5" />
+                Warehouse SaaS foundation
+              </Badge>
+              <h1 className="max-w-3xl text-4xl font-semibold tracking-tight text-balance sm:text-5xl lg:text-6xl">
+                Modern inventory intelligence for warehouse operations.
+              </h1>
+              <p className="max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
+                StockWise is designed to help teams manage products, stock
+                movement, supplier coordination, restock workflows, and
+                analytics through a polished dashboard experience that can grow
+                into a full warehouse platform.
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Link
+                href="/dashboard"
+                className={cn(buttonVariants({ variant: "default", size: "lg" }))}
+              >
+                Explore dashboard
+                <ArrowRight className="size-4" />
+              </Link>
+              <Link
+                href="/dashboard/products"
+                className={cn(buttonVariants({ variant: "outline", size: "lg" }))}
+              >
+                View module structure
+              </Link>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              {highlights.map((item) => {
+                const Icon = item.icon;
+
+                return (
+                  <Card
+                    key={item.title}
+                    className="border-border/70 bg-background/80 shadow-sm shadow-black/5 backdrop-blur"
+                  >
+                    <CardHeader className="space-y-3">
+                      <div className="flex size-10 items-center justify-center rounded-2xl bg-primary/8 text-primary ring-1 ring-primary/10">
+                        <Icon className="size-5" />
+                      </div>
+                      <CardTitle>{item.title}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="text-sm leading-6 text-muted-foreground">
+                      {item.description}
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="relative">
+            <div className="absolute inset-0 -z-10 rounded-[2rem] bg-[radial-gradient(circle_at_top_right,rgba(14,116,144,0.18),transparent_45%)] blur-2xl dark:bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.18),transparent_45%)]" />
+            <Card className="overflow-hidden border-border/70 bg-background/90 shadow-xl shadow-black/10">
+              <CardHeader className="border-b border-border/70 pb-5">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      Platform scope
+                    </p>
+                    <CardTitle className="mt-1 text-xl">
+                      StockWise foundations
+                    </CardTitle>
+                  </div>
+                  <div className="flex size-12 items-center justify-center rounded-2xl bg-secondary text-secondary-foreground">
+                    <QrCode className="size-6" />
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-6 pt-6">
+                <div className="grid gap-3">
+                  {modules.map((module) => (
+                    <div
+                      key={module}
+                      className="flex items-center justify-between rounded-2xl border border-border/70 bg-muted/40 px-4 py-3"
+                    >
+                      <span className="text-sm font-medium">{module}</span>
+                      <Badge variant="outline">Planned</Badge>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="rounded-3xl border border-border/70 bg-[linear-gradient(135deg,rgba(14,116,144,0.12),transparent)] p-5 dark:bg-[linear-gradient(135deg,rgba(34,211,238,0.12),transparent)]">
+                  <p className="text-sm font-medium">Built for phased delivery</p>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                    This phase focuses on the app shell, navigation, and
+                    presentation layer so later work can plug in auth, Prisma,
+                    workflows, analytics, and exports without reworking the UI
+                    foundation.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+      </section>
+    </main>
   );
 }
