@@ -41,7 +41,13 @@ function getStatusBadgeVariant(status: string) {
 }
 
 export default async function DashboardPage() {
-  const [products, transactions, recentTransactions, restockOrders] =
+  const [
+    products,
+    movementTransactions,
+    recentTransactions,
+    pendingTransactionCount,
+    activeRestockOrderCount,
+  ] =
     await Promise.all([
       prisma.product.findMany({
         select: {
@@ -58,10 +64,13 @@ export default async function DashboardPage() {
         },
       }),
       prisma.transaction.findMany({
+        where: {
+          status: {
+            in: ["APPROVED", "COMPLETED"],
+          },
+        },
         select: {
-          id: true,
           type: true,
-          status: true,
           transactionDate: true,
           items: {
             select: {
@@ -87,10 +96,16 @@ export default async function DashboardPage() {
           },
         },
       }),
-      prisma.restockOrder.findMany({
-        select: {
-          id: true,
-          status: true,
+      prisma.transaction.count({
+        where: {
+          status: "PENDING",
+        },
+      }),
+      prisma.restockOrder.count({
+        where: {
+          status: {
+            in: ["PENDING", "CONFIRMED", "IN_TRANSIT"],
+          },
         },
       }),
     ]);
@@ -116,14 +131,6 @@ export default async function DashboardPage() {
       getStockStatus(product.currentStock, product.minimumStock) === "OUT_OF_STOCK"
   ).length;
 
-  const pendingTransactionCount = transactions.filter(
-    (transaction) => transaction.status === "PENDING"
-  ).length;
-
-  const activeRestockOrderCount = restockOrders.filter((order) =>
-    ["PENDING", "CONFIRMED", "IN_TRANSIT"].includes(order.status)
-  ).length;
-
   const inventoryByCategoryMap = new Map<string, number>();
 
   products.forEach((product) => {
@@ -143,11 +150,7 @@ export default async function DashboardPage() {
 
   const movementMap = new Map<string, { label: string; incoming: number; outgoing: number }>();
 
-  transactions
-    .filter((transaction) =>
-      ["APPROVED", "COMPLETED"].includes(transaction.status)
-    )
-    .forEach((transaction) => {
+  movementTransactions.forEach((transaction) => {
       const monthKey = new Intl.DateTimeFormat("en-US", {
         month: "short",
         year: "2-digit",

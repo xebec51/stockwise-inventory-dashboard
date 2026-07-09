@@ -18,6 +18,8 @@ type LoginPageProps = {
   }>;
 };
 
+export const dynamic = "force-dynamic";
+
 const demoAccounts = [
   "admin@stockwise.demo",
   "manager@stockwise.demo",

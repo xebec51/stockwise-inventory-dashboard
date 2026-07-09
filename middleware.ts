@@ -5,6 +5,16 @@ import { canAccessDashboardPath, type AppRole } from "@/config/role-access";
 
 export default withAuth(
   function middleware(request) {
+    if (request.nextUrl.pathname === "/login") {
+      const token = request.nextauth.token;
+
+      if (token?.role && token?.status === "ACTIVE") {
+        return NextResponse.redirect(new URL("/dashboard", request.url));
+      }
+
+      return NextResponse.next();
+    }
+
     const token = request.nextauth.token;
 
     if (!token?.role || !token?.status) {
@@ -25,11 +35,11 @@ export default withAuth(
   },
   {
     callbacks: {
-      authorized: ({ token }) => Boolean(token),
+      authorized: () => true,
     },
   }
 );
 
 export const config = {
-  matcher: ["/dashboard/:path*"],
+  matcher: ["/dashboard/:path*", "/login"],
 };
