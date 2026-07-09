@@ -1,33 +1,47 @@
 # StockWise
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Next.js-16-black?logo=next.js" />
-  <img src="https://img.shields.io/badge/TypeScript-Strict-blue?logo=typescript" />
-  <img src="https://img.shields.io/badge/Prisma-ORM-2D3748?logo=prisma" />
-  <img src="https://img.shields.io/badge/PostgreSQL-Neon-336791?logo=postgresql" />
-  <img src="https://img.shields.io/badge/Tailwind%20CSS-v4-38BDF8?logo=tailwindcss" />
-  <img src="https://img.shields.io/badge/shadcn/ui-Admin%20UI-black" />
-  <img src="https://img.shields.io/badge/Status-Portfolio%20Project-success" />
+  <img src="https://img.shields.io/badge/Status-Active%20Development-16A34A?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/License-MIT-2563EB?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Live%20Demo-Coming%20Soon-F59E0B?style=for-the-badge" />
 </p>
 
 <p align="center">
   <a href="https://github.com/xebec51">
-    <img src="https://img.shields.io/badge/GitHub-xebec51-181717?logo=github" />
+    <img src="https://img.shields.io/badge/GitHub-xebec51-181717?style=for-the-badge&logo=github&logoColor=white" />
   </a>
   <a href="mailto:rinaldi.ruslan51@gmail.com">
-    <img src="https://img.shields.io/badge/Email-rinaldi.ruslan51%40gmail.com-D14836?logo=gmail&logoColor=white" />
+    <img src="https://img.shields.io/badge/Email-rinaldi.ruslan51%40gmail.com-D14836?style=for-the-badge&logo=gmail&logoColor=white" />
   </a>
   <a href="https://www.instagram.com/rinaldiruslan/">
-    <img src="https://img.shields.io/badge/Instagram-rinaldiruslan-E4405F?logo=instagram&logoColor=white" />
+    <img src="https://img.shields.io/badge/Instagram-rinaldiruslan-E4405F?style=for-the-badge&logo=instagram&logoColor=white" />
   </a>
   <a href="https://www.tiktok.com/@rinaldiruslan">
-    <img src="https://img.shields.io/badge/TikTok-rinaldiruslan-000000?logo=tiktok&logoColor=white" />
+    <img src="https://img.shields.io/badge/TikTok-rinaldiruslan-000000?style=for-the-badge&logo=tiktok&logoColor=white" />
   </a>
 </p>
 
 <p align="center">
-  <strong>Modern Inventory Intelligence Dashboard</strong><br/>
-  SaaS-style warehouse management system for stock control, supplier coordination, transaction approvals, analytics, QR labels, and export reporting.
+  <strong>Modern Inventory Intelligence Dashboard</strong>
+</p>
+
+<p align="center">
+  SaaS-style warehouse management system for stock control, supplier coordination, transaction approvals,
+  analytics, QR labels, and export reporting.
+</p>
+
+<p align="center">
+  <em>Built as a portfolio-grade warehouse operations platform with real workflow logic, role-based access, and production-style dashboard UX.</em>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Next.js-16-000000?style=flat-square&logo=next.js&logoColor=white" />
+  <img src="https://img.shields.io/badge/TypeScript-Strict-3178C6?style=flat-square&logo=typescript&logoColor=white" />
+  <img src="https://img.shields.io/badge/Prisma-ORM-2D3748?style=flat-square&logo=prisma&logoColor=white" />
+  <img src="https://img.shields.io/badge/PostgreSQL-Neon-336791?style=flat-square&logo=postgresql&logoColor=white" />
+  <img src="https://img.shields.io/badge/Tailwind-v4-38BDF8?style=flat-square&logo=tailwindcss&logoColor=white" />
+  <img src="https://img.shields.io/badge/shadcn/ui-Admin%20UI-111111?style=flat-square" />
+  <img src="https://img.shields.io/badge/NextAuth-Credentials-4B5563?style=flat-square" />
 </p>
 
 ---
@@ -397,3 +411,33 @@ Phase yang sudah selesai:
 - TikTok: https://www.tiktok.com/@rinaldiruslan
 
 StockWise dikembangkan sebagai portfolio-grade warehouse management project menggunakan stack modern React ecosystem, Prisma, dan PostgreSQL.
+
+---
+
+## Connect with Me
+
+<p align="center">
+  <a href="https://github.com/xebec51">
+    <img src="https://img.shields.io/badge/GitHub-xebec51-181717?style=for-the-badge&logo=github&logoColor=white" />
+  </a>
+  <a href="mailto:rinaldi.ruslan51@gmail.com">
+    <img src="https://img.shields.io/badge/Email-Contact%20Me-D14836?style=for-the-badge&logo=gmail&logoColor=white" />
+  </a>
+  <a href="https://www.instagram.com/rinaldiruslan/">
+    <img src="https://img.shields.io/badge/Instagram-rinaldiruslan-E4405F?style=for-the-badge&logo=instagram&logoColor=white" />
+  </a>
+  <a href="https://www.tiktok.com/@rinaldiruslan">
+    <img src="https://img.shields.io/badge/TikTok-rinaldiruslan-000000?style=for-the-badge&logo=tiktok&logoColor=white" />
+  </a>
+</p>
+
+---
+
+<p align="center">
+  <strong>StockWise</strong><br/>
+  Crafted by <strong>Muh. Rinaldi Ruslan</strong> as a modern warehouse intelligence portfolio project.
+</p>
+
+<p align="center">
+  Built with Next.js, Prisma, PostgreSQL, and a product-first mindset for real operational workflows.
+</p>
