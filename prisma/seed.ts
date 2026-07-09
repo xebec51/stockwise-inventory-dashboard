@@ -1,11 +1,10 @@
 import "dotenv/config";
 
-import { spawnSync } from "node:child_process";
+import { execSync } from "node:child_process";
 
 import bcrypt from "bcryptjs";
 
 const DEMO_PASSWORD = "Password123!";
-const schemaPath = "prisma/schema.prisma";
 
 type RowValue = string | number | null;
 
@@ -52,20 +51,29 @@ function buildUpsertStatement(
 }
 
 function runSql(sql: string) {
-  const command = process.platform === "win32" ? "npx.cmd" : "npx";
-  const result = spawnSync(
-    command,
-    ["prisma", "db", "execute", "--stdin", "--schema", schemaPath],
-    {
+  try {
+    execSync("npx prisma db execute --stdin", {
       input: sql,
-      stdio: ["pipe", "inherit", "inherit"],
+      stdio: ["pipe", "pipe", "pipe"],
       env: process.env,
       encoding: "utf8",
-    }
-  );
+    });
+  } catch (error) {
+    if (error instanceof Error && "stderr" in error) {
+      const execError = error as Error & {
+        stdout?: unknown;
+        stderr?: unknown;
+      };
+      const stderr = String(execError.stderr ?? "").trim();
+      const stdout = String(execError.stdout ?? "").trim();
+      const output = [stdout, stderr, execError.message]
+        .filter(Boolean)
+        .join("\n");
 
-  if (result.status !== 0) {
-    throw new Error("Seed execution failed.");
+      throw new Error(output || "Seed execution failed.");
+    }
+
+    throw error;
   }
 }
 
