@@ -52,12 +52,21 @@ export const authOptions: NextAuthOptions = {
             password: true,
             role: true,
             status: true,
-            avatarUrl: true,
           },
         });
 
         if (!user) {
           return null;
+        }
+
+        if (user.status !== "ACTIVE") {
+          return {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            status: user.status,
+          };
         }
 
         const passwordMatches = await bcrypt.compare(password, user.password);
@@ -72,7 +81,6 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           role: user.role,
           status: user.status,
-          image: user.avatarUrl,
         };
       },
     }),
@@ -94,7 +102,6 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.role = user.role;
         token.status = user.status;
-        token.picture = user.image ?? null;
       }
 
       return token;
@@ -104,7 +111,6 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id as string;
         session.user.role = token.role as AppRole;
         session.user.status = token.status as AuthSessionUser["status"];
-        session.user.image = (token.picture as string | null | undefined) ?? null;
       }
 
       return session;

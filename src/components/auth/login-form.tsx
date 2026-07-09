@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 
@@ -27,9 +27,14 @@ export function LoginForm({ error }: LoginFormProps) {
   const [pending, startTransition] = useTransition();
   const [message, setMessage] = useState(error ? errorMessages[error] ?? errorMessages.default : "");
 
+  useEffect(() => {
+    router.prefetch("/dashboard");
+  }, [router]);
+
   function handleSubmit(formData: FormData) {
     const email = formData.get("email")?.toString() ?? "";
     const password = formData.get("password")?.toString() ?? "";
+    setMessage("");
 
     startTransition(async () => {
       const result = await signIn("credentials", {
@@ -49,13 +54,12 @@ export function LoginForm({ error }: LoginFormProps) {
         return;
       }
 
-      router.push(result.url ?? "/dashboard");
-      router.refresh();
+      router.replace(result.url ?? "/dashboard");
     });
   }
 
   return (
-    <form action={handleSubmit} className="space-y-4">
+    <form action={handleSubmit} className="space-y-4" aria-busy={pending}>
       {message ? (
         <Alert variant="destructive">
           <AlertTitle>Sign-in blocked</AlertTitle>
@@ -70,6 +74,7 @@ export function LoginForm({ error }: LoginFormProps) {
           name="email"
           type="email"
           placeholder="admin@stockwise.demo"
+          disabled={pending}
           required
         />
       </div>
@@ -81,6 +86,7 @@ export function LoginForm({ error }: LoginFormProps) {
           name="password"
           type="password"
           placeholder="Password123!"
+          disabled={pending}
           required
         />
       </div>

@@ -26,6 +26,9 @@ import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
+const RECENT_TRANSACTION_LIMIT = 5;
+const LOW_STOCK_PREVIEW_LIMIT = 5;
+
 function getStatusBadgeVariant(status: string) {
   switch (status) {
     case "PENDING":
@@ -80,7 +83,7 @@ export default async function DashboardPage() {
         },
       }),
       prisma.transaction.findMany({
-        take: 6,
+        take: RECENT_TRANSACTION_LIMIT,
         orderBy: [{ transactionDate: "desc" }, { createdAt: "desc" }],
         select: {
           id: true,
@@ -110,36 +113,35 @@ export default async function DashboardPage() {
       }),
     ]);
 
-  const lowStockProducts = products
-    .filter((product) => product.currentStock <= product.minimumStock)
-    .sort((left, right) => left.currentStock - right.currentStock)
-    .slice(0, 6);
-
-  const totalInventoryValue = products.reduce(
-    (total, product) =>
-      total + Number(product.purchasePrice) * product.currentStock,
-    0
-  );
-
-  const lowStockCount = products.filter(
-    (product) =>
-      getStockStatus(product.currentStock, product.minimumStock) === "LOW_STOCK"
-  ).length;
-
-  const outOfStockCount = products.filter(
-    (product) =>
-      getStockStatus(product.currentStock, product.minimumStock) === "OUT_OF_STOCK"
-  ).length;
-
   const inventoryByCategoryMap = new Map<string, number>();
+  const lowStockCandidates: typeof products = [];
+  let totalInventoryValue = 0;
+  let lowStockCount = 0;
+  let outOfStockCount = 0;
 
   products.forEach((product) => {
+    const status = getStockStatus(product.currentStock, product.minimumStock);
     const currentValue =
       inventoryByCategoryMap.get(product.category.name) ?? 0;
     const productValue = Number(product.purchasePrice) * product.currentStock;
 
+    totalInventoryValue += productValue;
     inventoryByCategoryMap.set(product.category.name, currentValue + productValue);
+
+    if (status === "LOW_STOCK") {
+      lowStockCount += 1;
+      lowStockCandidates.push(product);
+    }
+
+    if (status === "OUT_OF_STOCK") {
+      outOfStockCount += 1;
+      lowStockCandidates.push(product);
+    }
   });
+
+  const lowStockProducts = lowStockCandidates
+    .sort((left, right) => left.currentStock - right.currentStock)
+    .slice(0, LOW_STOCK_PREVIEW_LIMIT);
 
   const inventoryByCategory = [...inventoryByCategoryMap.entries()]
     .map(([name, value]) => ({
