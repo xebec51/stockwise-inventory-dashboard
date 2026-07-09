@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 
 import { DataEmptyState } from "@/components/dashboard/data-empty-state";
+import { ExportButtons } from "@/components/dashboard/export-buttons";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { TransactionFormDialog } from "@/components/dashboard/transaction-form-dialog";
 import { TransactionReviewDialog } from "@/components/dashboard/transaction-review-dialog";
@@ -26,10 +27,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  formatDateTime,
-  formatStatusLabel,
-} from "@/lib/formatters";
+import { formatDateTime, formatStatusLabel } from "@/lib/formatters";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -169,7 +167,32 @@ export default async function TransactionsPage() {
         eyebrow="Transactions"
         title="Stock movement workflow area"
         description="Incoming and outgoing transactions now run through a pending approval workflow with stock-safe updates, item-level audit fields, and Prisma-backed operational history."
-        action={<TransactionFormDialog creators={creators} products={products} />}
+        action={
+          <div className="flex flex-wrap justify-end gap-2">
+            <ExportButtons
+              filenamePrefix="stockwise-transactions"
+              rows={transactions.flatMap((transaction) =>
+                transaction.items.map((item) => ({
+                  transactionNumber: transaction.transactionNumber,
+                  type: transaction.type,
+                  status: transaction.status,
+                  transactionDate: transaction.transactionDate.toISOString(),
+                  creator: transaction.creator.name,
+                  approver: transaction.approver?.name ?? "",
+                  destination: transaction.destination ?? "",
+                  product: item.product.name,
+                  sku: item.product.sku,
+                  quantity: item.quantity,
+                  stockBefore: item.stockBefore,
+                  stockAfter: item.stockAfter,
+                  notes: transaction.notes ?? "",
+                }))
+              )}
+              sheetName="Transactions"
+            />
+            <TransactionFormDialog creators={creators} products={products} />
+          </div>
+        }
       />
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -313,13 +336,16 @@ export default async function TransactionsPage() {
                     <TableCell className="min-w-80">
                       <div className="space-y-2">
                         {transaction.items.map((item) => (
-                          <div key={item.id} className="rounded-xl border border-border/60 px-3 py-2">
+                          <div
+                            key={item.id}
+                            className="rounded-xl border border-border/60 px-3 py-2"
+                          >
                             <p className="text-sm font-medium">
                               {item.product.name} ({item.product.sku})
                             </p>
                             <p className="text-xs text-muted-foreground">
-                              Qty {item.quantity} {item.product.unit} • Audit{" "}
-                              {item.stockBefore} → {item.stockAfter}
+                              Qty {item.quantity} {item.product.unit} | Audit{" "}
+                              {item.stockBefore} -&gt; {item.stockAfter}
                             </p>
                           </div>
                         ))}

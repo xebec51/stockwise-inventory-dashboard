@@ -3,7 +3,9 @@ import { PackageSearch } from "lucide-react";
 import { deleteProduct } from "@/app/dashboard/products/actions";
 import { DataEmptyState } from "@/components/dashboard/data-empty-state";
 import { DeleteConfirmDialog } from "@/components/dashboard/delete-confirm-dialog";
+import { ExportButtons } from "@/components/dashboard/export-buttons";
 import { PageHeader } from "@/components/dashboard/page-header";
+import { ProductQrDialog } from "@/components/dashboard/product-qr-dialog";
 import { ProductFormDialog } from "@/components/dashboard/product-form-dialog";
 import { StockStatusBadge } from "@/components/dashboard/stock-status-badge";
 import {
@@ -66,7 +68,31 @@ export default async function ProductsPage() {
         eyebrow="Products"
         title="Product catalog workspace"
         description="Live product data now flows from Prisma into the dashboard, including stock context, category assignment, warehouse location, and pricing references."
-        action={<ProductFormDialog categories={categories} mode="create" />}
+        action={
+          <div className="flex flex-wrap justify-end gap-2">
+            <ExportButtons
+              filenamePrefix="stockwise-products"
+              rows={products.map((product) => ({
+                name: product.name,
+                sku: product.sku,
+                category: product.category.name,
+                currentStock: product.currentStock,
+                minimumStock: product.minimumStock,
+                stockStatus: getStockStatus(
+                  product.currentStock,
+                  product.minimumStock
+                ),
+                unit: product.unit,
+                rackLocation: product.rackLocation,
+                purchasePrice: product.purchasePrice.toString(),
+                sellingPrice: product.sellingPrice.toString(),
+                qrCode: product.qrCode ?? product.sku,
+              }))}
+              sheetName="Products"
+            />
+            <ProductFormDialog categories={categories} mode="create" />
+          </div>
+        }
       />
 
       {products.length === 0 ? (
@@ -139,6 +165,10 @@ export default async function ProductsPage() {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
+                          <ProductQrDialog
+                            label={product.name}
+                            value={product.qrCode ?? product.sku}
+                          />
                           <ProductFormDialog
                             categories={categories}
                             mode="edit"
