@@ -11,6 +11,21 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/xebec51">
+    <img src="https://img.shields.io/badge/GitHub-xebec51-181717?logo=github" />
+  </a>
+  <a href="mailto:rinaldi.ruslan51@gmail.com">
+    <img src="https://img.shields.io/badge/Email-rinaldi.ruslan51%40gmail.com-D14836?logo=gmail&logoColor=white" />
+  </a>
+  <a href="https://www.instagram.com/rinaldiruslan/">
+    <img src="https://img.shields.io/badge/Instagram-rinaldiruslan-E4405F?logo=instagram&logoColor=white" />
+  </a>
+  <a href="https://www.tiktok.com/@rinaldiruslan">
+    <img src="https://img.shields.io/badge/TikTok-rinaldiruslan-000000?logo=tiktok&logoColor=white" />
+  </a>
+</p>
+
+<p align="center">
   <strong>Modern Inventory Intelligence Dashboard</strong><br/>
   SaaS-style warehouse management system for stock control, supplier coordination, transaction approvals, analytics, QR labels, and export reporting.
 </p>
@@ -373,5 +388,12 @@ Phase yang sudah selesai:
 ---
 
 ## Author
+
+**Muh. Rinaldi Ruslan**
+
+- Email: [rinaldi.ruslan51@gmail.com](mailto:rinaldi.ruslan51@gmail.com)
+- GitHub: https://github.com/xebec51
+- Instagram: https://www.instagram.com/rinaldiruslan/
+- TikTok: https://www.tiktok.com/@rinaldiruslan
 
 StockWise dikembangkan sebagai portfolio-grade warehouse management project menggunakan stack modern React ecosystem, Prisma, dan PostgreSQL.
