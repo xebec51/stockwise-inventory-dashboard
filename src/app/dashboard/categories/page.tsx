@@ -1,6 +1,9 @@
 import { FolderSearch } from "lucide-react";
 
+import { deleteCategory } from "@/app/dashboard/categories/actions";
+import { CategoryFormDialog } from "@/components/dashboard/category-form-dialog";
 import { DataEmptyState } from "@/components/dashboard/data-empty-state";
+import { DeleteConfirmDialog } from "@/components/dashboard/delete-confirm-dialog";
 import { PageHeader } from "@/components/dashboard/page-header";
 import {
   Card,
@@ -29,6 +32,7 @@ export default async function CategoriesPage() {
       name: true,
       slug: true,
       description: true,
+      imageUrl: true,
       createdAt: true,
       _count: {
         select: {
@@ -45,6 +49,7 @@ export default async function CategoriesPage() {
         eyebrow="Categories"
         title="Inventory classification layer"
         description="Category records are now loaded from Prisma to show taxonomy structure, slugs, descriptions, and live product counts."
+        action={<CategoryFormDialog mode="create" />}
       />
 
       {categories.length === 0 ? (
@@ -72,6 +77,7 @@ export default async function CategoriesPage() {
                   <TableHead>Description</TableHead>
                   <TableHead>Products</TableHead>
                   <TableHead>Created</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -84,6 +90,27 @@ export default async function CategoriesPage() {
                     </TableCell>
                     <TableCell>{category._count.products}</TableCell>
                     <TableCell>{formatDate(category.createdAt)}</TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <CategoryFormDialog
+                          mode="edit"
+                          category={{
+                            id: category.id,
+                            name: category.name,
+                            slug: category.slug,
+                            description: category.description,
+                            imageUrl: category.imageUrl,
+                          }}
+                        />
+                        <DeleteConfirmDialog
+                          action={deleteCategory}
+                          description="Delete this category only if it no longer has any products assigned to it."
+                          entityId={category.id}
+                          entityLabel={category.name}
+                          title="Delete category"
+                        />
+                      </div>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

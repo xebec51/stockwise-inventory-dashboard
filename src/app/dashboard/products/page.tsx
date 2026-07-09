@@ -1,7 +1,10 @@
 import { PackageSearch } from "lucide-react";
 
+import { deleteProduct } from "@/app/dashboard/products/actions";
 import { DataEmptyState } from "@/components/dashboard/data-empty-state";
+import { DeleteConfirmDialog } from "@/components/dashboard/delete-confirm-dialog";
 import { PageHeader } from "@/components/dashboard/page-header";
+import { ProductFormDialog } from "@/components/dashboard/product-form-dialog";
 import { StockStatusBadge } from "@/components/dashboard/stock-status-badge";
 import {
   Card,
@@ -28,13 +31,17 @@ export default async function ProductsPage() {
   const products = await prisma.product.findMany({
     select: {
       id: true,
+      categoryId: true,
       name: true,
       sku: true,
+      description: true,
       currentStock: true,
       minimumStock: true,
       unit: true,
       rackLocation: true,
+      imageUrl: true,
       purchasePrice: true,
+      qrCode: true,
       sellingPrice: true,
       category: {
         select: {
@@ -45,12 +52,21 @@ export default async function ProductsPage() {
     orderBy: [{ createdAt: "desc" }, { name: "asc" }],
   });
 
+  const categories = await prisma.category.findMany({
+    select: {
+      id: true,
+      name: true,
+    },
+    orderBy: [{ name: "asc" }],
+  });
+
   return (
     <div className="space-y-6">
       <PageHeader
         eyebrow="Products"
         title="Product catalog workspace"
         description="Live product data now flows from Prisma into the dashboard, including stock context, category assignment, warehouse location, and pricing references."
+        action={<ProductFormDialog categories={categories} mode="create" />}
       />
 
       {products.length === 0 ? (
@@ -81,6 +97,7 @@ export default async function ProductsPage() {
                   <TableHead>Rack</TableHead>
                   <TableHead className="text-right">Purchase</TableHead>
                   <TableHead className="text-right">Selling</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -119,6 +136,36 @@ export default async function ProductsPage() {
                       </TableCell>
                       <TableCell className="text-right font-medium">
                         {formatCurrency(product.sellingPrice.toString())}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <ProductFormDialog
+                            categories={categories}
+                            mode="edit"
+                            product={{
+                              id: product.id,
+                              categoryId: product.categoryId,
+                              name: product.name,
+                              sku: product.sku,
+                              description: product.description,
+                              purchasePrice: product.purchasePrice.toString(),
+                              sellingPrice: product.sellingPrice.toString(),
+                              currentStock: product.currentStock,
+                              minimumStock: product.minimumStock,
+                              unit: product.unit,
+                              rackLocation: product.rackLocation,
+                              imageUrl: product.imageUrl,
+                              qrCode: product.qrCode,
+                            }}
+                          />
+                          <DeleteConfirmDialog
+                            action={deleteProduct}
+                            description="Delete this product from the catalog. Stock status remains computed and will disappear with the record."
+                            entityId={product.id}
+                            entityLabel={product.name}
+                            title="Delete product"
+                          />
+                        </div>
                       </TableCell>
                     </TableRow>
                   );
