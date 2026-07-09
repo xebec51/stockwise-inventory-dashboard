@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { Prisma } from "@/generated/prisma/client";
 
 import { type MutationState } from "@/lib/actions";
+import { requireCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import {
   restockOrderDecisionSchema,
@@ -266,10 +267,11 @@ export async function createRestockOrder(
   formData: FormData
 ): Promise<MutationState> {
   try {
+    const sessionUser = await requireCurrentUser(["ADMIN", "MANAGER"]);
     const values = parseRestockOrderFormData(formData);
     const [poNumberError, manager, supplier] = await Promise.all([
       ensureUniquePoNumber(values.poNumber),
-      ensureManagerExists(values.managerId),
+      ensureManagerExists(sessionUser.id),
       ensureSupplierExists(values.supplierId),
     ]);
 
@@ -320,7 +322,7 @@ export async function createRestockOrder(
         const restockOrder = await tx.restockOrder.create({
           data: {
             poNumber: values.poNumber,
-            managerId: values.managerId,
+            managerId: sessionUser.id,
             supplierId: values.supplierId,
             status: "PENDING",
             orderDate: values.orderDate,
@@ -343,7 +345,7 @@ export async function createRestockOrder(
 
         await tx.activityLog.create({
           data: {
-            userId: values.managerId,
+            userId: sessionUser.id,
             action: "CREATE",
             module: "RESTOCK_ORDERS",
             description: `Created restock order ${values.poNumber} for ${supplier.companyName} with ${values.items.length} product line${values.items.length === 1 ? "" : "s"}.`,
@@ -363,6 +365,12 @@ export async function createRestockOrder(
       message: "Restock order created successfully.",
     };
   } catch (error) {
+    if (error instanceof Error && error.message === "FORBIDDEN") {
+      return {
+        message: "Only managers and admins can create restock orders.",
+      };
+    }
+
     return validationErrorState(error);
   }
 }
@@ -372,6 +380,7 @@ export async function confirmRestockOrder(
   formData: FormData
 ): Promise<MutationState> {
   try {
+    const sessionUser = await requireCurrentUser(["SUPPLIER"]);
     const values = parseRestockDecisionFormData(formData);
     const restockOrder = await loadRestockOrderForDecision(values.id);
 
@@ -388,7 +397,7 @@ export async function confirmRestockOrder(
     }
 
     if (
-      values.actorId !== restockOrder.supplier.user.id ||
+      sessionUser.id !== restockOrder.supplier.user.id ||
       restockOrder.supplier.user.status !== "ACTIVE"
     ) {
       return {
@@ -409,7 +418,7 @@ export async function confirmRestockOrder(
 
         await tx.activityLog.create({
           data: {
-            userId: values.actorId,
+            userId: sessionUser.id,
             action: "UPDATE",
             module: "RESTOCK_ORDERS",
             description: describeRestockAction(
@@ -433,6 +442,12 @@ export async function confirmRestockOrder(
       message: "Restock order confirmed by the supplier.",
     };
   } catch (error) {
+    if (error instanceof Error && error.message === "FORBIDDEN") {
+      return {
+        message: "Only the assigned supplier can confirm this order.",
+      };
+    }
+
     return validationErrorState(error);
   }
 }
@@ -442,6 +457,7 @@ export async function rejectRestockOrder(
   formData: FormData
 ): Promise<MutationState> {
   try {
+    const sessionUser = await requireCurrentUser(["SUPPLIER"]);
     const values = parseRestockDecisionFormData(formData);
     const restockOrder = await loadRestockOrderForDecision(values.id);
 
@@ -458,7 +474,7 @@ export async function rejectRestockOrder(
     }
 
     if (
-      values.actorId !== restockOrder.supplier.user.id ||
+      sessionUser.id !== restockOrder.supplier.user.id ||
       restockOrder.supplier.user.status !== "ACTIVE"
     ) {
       return {
@@ -478,7 +494,7 @@ export async function rejectRestockOrder(
 
         await tx.activityLog.create({
           data: {
-            userId: values.actorId,
+            userId: sessionUser.id,
             action: "REJECT",
             module: "RESTOCK_ORDERS",
             description: describeRestockAction(
@@ -502,6 +518,12 @@ export async function rejectRestockOrder(
       message: "Restock order rejected by the supplier.",
     };
   } catch (error) {
+    if (error instanceof Error && error.message === "FORBIDDEN") {
+      return {
+        message: "Only the assigned supplier can reject this order.",
+      };
+    }
+
     return validationErrorState(error);
   }
 }
@@ -511,6 +533,7 @@ export async function markRestockOrderInTransit(
   formData: FormData
 ): Promise<MutationState> {
   try {
+    const sessionUser = await requireCurrentUser(["SUPPLIER"]);
     const values = parseRestockDecisionFormData(formData);
     const restockOrder = await loadRestockOrderForDecision(values.id);
 
@@ -527,7 +550,7 @@ export async function markRestockOrderInTransit(
     }
 
     if (
-      values.actorId !== restockOrder.supplier.user.id ||
+      sessionUser.id !== restockOrder.supplier.user.id ||
       restockOrder.supplier.user.status !== "ACTIVE"
     ) {
       return {
@@ -547,7 +570,7 @@ export async function markRestockOrderInTransit(
 
         await tx.activityLog.create({
           data: {
-            userId: values.actorId,
+            userId: sessionUser.id,
             action: "UPDATE",
             module: "RESTOCK_ORDERS",
             description: describeRestockAction(
@@ -571,6 +594,12 @@ export async function markRestockOrderInTransit(
       message: "Restock order marked in transit.",
     };
   } catch (error) {
+    if (error instanceof Error && error.message === "FORBIDDEN") {
+      return {
+        message: "Only the assigned supplier can update this order to in transit.",
+      };
+    }
+
     return validationErrorState(error);
   }
 }
@@ -580,6 +609,7 @@ export async function receiveRestockOrder(
   formData: FormData
 ): Promise<MutationState> {
   try {
+    const sessionUser = await requireCurrentUser(["ADMIN", "MANAGER"]);
     const values = parseRestockDecisionFormData(formData);
     const restockOrder = await loadRestockOrderForDecision(values.id);
 
@@ -596,9 +626,8 @@ export async function receiveRestockOrder(
     }
 
     const managerCanReceive =
-      values.actorId === restockOrder.manager.id &&
-      restockOrder.manager.status === "ACTIVE" &&
-      ["ADMIN", "MANAGER"].includes(restockOrder.manager.role);
+      (sessionUser.role === "ADMIN" || sessionUser.id === restockOrder.manager.id) &&
+      restockOrder.manager.status === "ACTIVE";
 
     if (!managerCanReceive) {
       return {
@@ -630,7 +659,7 @@ export async function receiveRestockOrder(
           data: {
             transactionNumber,
             createdById: restockOrder.managerId,
-            approvedById: values.actorId,
+            approvedById: sessionUser.id,
             sourceRestockOrderId: restockOrder.id,
             type: "INCOMING",
             status: "COMPLETED",
@@ -668,13 +697,13 @@ export async function receiveRestockOrder(
 
         await tx.activityLog.create({
           data: {
-            userId: values.actorId,
+            userId: sessionUser.id,
             action: "UPDATE",
             module: "RESTOCK_ORDERS",
             description: describeRestockAction(
               "Marked received",
               restockOrder.poNumber,
-              restockOrder.manager.name
+              sessionUser.name ?? restockOrder.manager.name
             ),
             ipAddress: "127.0.0.1",
           },
@@ -693,6 +722,12 @@ export async function receiveRestockOrder(
         "Restock order received, stock updated, and linked incoming transaction created.",
     };
   } catch (error) {
+    if (error instanceof Error && error.message === "FORBIDDEN") {
+      return {
+        message: "Only the assigned manager or an admin can receive this order.",
+      };
+    }
+
     return validationErrorState(error);
   }
 }
@@ -702,6 +737,7 @@ export async function createSupplierRating(
   formData: FormData
 ): Promise<MutationState> {
   try {
+    const sessionUser = await requireCurrentUser(["ADMIN", "MANAGER"]);
     const values = parseSupplierRatingFormData(formData);
     const restockOrder = await loadRestockOrderForDecision(values.restockOrderId);
 
@@ -718,9 +754,8 @@ export async function createSupplierRating(
     }
 
     const managerCanRate =
-      values.managerId === restockOrder.manager.id &&
-      restockOrder.manager.status === "ACTIVE" &&
-      ["ADMIN", "MANAGER"].includes(restockOrder.manager.role);
+      (sessionUser.role === "ADMIN" || sessionUser.id === restockOrder.manager.id) &&
+      restockOrder.manager.status === "ACTIVE";
 
     if (!managerCanRate) {
       return {
@@ -739,7 +774,7 @@ export async function createSupplierRating(
         await tx.supplierRating.create({
           data: {
             restockOrderId: restockOrder.id,
-            managerId: values.managerId,
+            managerId: sessionUser.id,
             supplierId: restockOrder.supplierId,
             rating: values.rating,
             feedback: values.feedback,
@@ -748,7 +783,7 @@ export async function createSupplierRating(
 
         await tx.activityLog.create({
           data: {
-            userId: values.managerId,
+            userId: sessionUser.id,
             action: "CREATE",
             module: "SUPPLIER_RATINGS",
             description: `Rated supplier ${restockOrder.supplier.companyName} ${values.rating}/5 for restock order ${restockOrder.poNumber}.`,
@@ -768,6 +803,12 @@ export async function createSupplierRating(
       message: "Supplier rating saved successfully.",
     };
   } catch (error) {
+    if (error instanceof Error && error.message === "FORBIDDEN") {
+      return {
+        message: "Only the assigned manager or an admin can rate this supplier.",
+      };
+    }
+
     return validationErrorState(error);
   }
 }

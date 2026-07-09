@@ -27,6 +27,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { getCurrentUser } from "@/lib/auth";
 import { formatDateTime, formatStatusLabel } from "@/lib/formatters";
 import { prisma } from "@/lib/prisma";
 
@@ -51,8 +52,15 @@ function getTypeBadgeVariant(type: string) {
 }
 
 export default async function TransactionsPage() {
-  const [transactions, creators, approvers, products] = await Promise.all([
+  const currentUser = await getCurrentUser();
+  const [transactions, products] = await Promise.all([
     prisma.transaction.findMany({
+      where:
+        currentUser?.role === "STAFF"
+          ? {
+              createdById: currentUser.id,
+            }
+          : undefined,
       select: {
         id: true,
         transactionNumber: true,
@@ -91,34 +99,6 @@ export default async function TransactionsPage() {
         },
       },
       orderBy: [{ transactionDate: "desc" }, { createdAt: "desc" }],
-    }),
-    prisma.user.findMany({
-      where: {
-        status: "ACTIVE",
-        role: {
-          in: ["ADMIN", "MANAGER", "STAFF"],
-        },
-      },
-      select: {
-        id: true,
-        name: true,
-        role: true,
-      },
-      orderBy: [{ name: "asc" }],
-    }),
-    prisma.user.findMany({
-      where: {
-        status: "ACTIVE",
-        role: {
-          in: ["ADMIN", "MANAGER"],
-        },
-      },
-      select: {
-        id: true,
-        name: true,
-        role: true,
-      },
-      orderBy: [{ name: "asc" }],
     }),
     prisma.product.findMany({
       select: {
@@ -161,6 +141,11 @@ export default async function TransactionsPage() {
     }
   );
 
+  const canCreateTransactions =
+    currentUser?.role === "ADMIN" || currentUser?.role === "STAFF";
+  const canReviewTransactions =
+    currentUser?.role === "ADMIN" || currentUser?.role === "MANAGER";
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -190,7 +175,9 @@ export default async function TransactionsPage() {
               )}
               sheetName="Transactions"
             />
-            <TransactionFormDialog creators={creators} products={products} />
+            {canCreateTransactions && currentUser ? (
+              <TransactionFormDialog currentUser={currentUser} products={products} />
+            ) : null}
           </div>
         }
       />
@@ -360,10 +347,10 @@ export default async function TransactionsPage() {
                         : "Not reviewed yet"}
                     </TableCell>
                     <TableCell className="text-right">
-                      {transaction.status === "PENDING" ? (
+                      {transaction.status === "PENDING" && canReviewTransactions && currentUser ? (
                         <div className="flex justify-end gap-2">
                           <TransactionReviewDialog
-                            approvers={approvers}
+                            currentUser={currentUser}
                             mode="approve"
                             transaction={{
                               id: transaction.id,
@@ -372,7 +359,7 @@ export default async function TransactionsPage() {
                             }}
                           />
                           <TransactionReviewDialog
-                            approvers={approvers}
+                            currentUser={currentUser}
                             mode="reject"
                             transaction={{
                               id: transaction.id,
@@ -383,7 +370,9 @@ export default async function TransactionsPage() {
                         </div>
                       ) : (
                         <span className="text-sm text-muted-foreground">
-                          Review complete
+                          {transaction.status === "PENDING"
+                            ? "Awaiting manager review"
+                            : "Review complete"}
                         </span>
                       )}
                     </TableCell>

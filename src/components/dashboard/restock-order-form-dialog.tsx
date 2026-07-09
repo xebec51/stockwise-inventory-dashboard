@@ -35,12 +35,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { type MutationState, initialMutationState } from "@/lib/actions";
-
-type ManagerOption = {
-  id: string;
-  name: string;
-  role: string;
-};
+import type { AuthSessionUser } from "@/lib/auth";
 
 type SupplierOption = {
   id: string;
@@ -63,7 +58,7 @@ type RestockItemDraft = {
 };
 
 type RestockOrderFormDialogProps = {
-  managers: ManagerOption[];
+  currentUser: AuthSessionUser;
   products: ProductOption[];
   suppliers: SupplierOption[];
 };
@@ -209,12 +204,11 @@ function RestockItemRow({
 }
 
 export function RestockOrderFormDialog({
-  managers,
+  currentUser,
   products,
   suppliers,
 }: RestockOrderFormDialogProps) {
   const [open, setOpen] = useState(false);
-  const [managerId, setManagerId] = useState(managers[0]?.id ?? "");
   const [supplierId, setSupplierId] = useState(suppliers[0]?.id ?? "");
   const [items, setItems] = useState<RestockItemDraft[]>([createEmptyLine()]);
   const [state, formAction] = useActionState(
@@ -234,7 +228,6 @@ export function RestockOrderFormDialog({
 
   function handleOpenChange(nextOpen: boolean) {
     if (nextOpen) {
-      setManagerId(managers[0]?.id ?? "");
       setSupplierId(suppliers[0]?.id ?? "");
       setItems([createEmptyLine()]);
     }
@@ -275,7 +268,7 @@ export function RestockOrderFormDialog({
         </DialogHeader>
 
         <form action={formAction} className="space-y-4">
-          <input type="hidden" name="managerId" value={managerId} />
+          <input type="hidden" name="managerId" value={currentUser.id} />
           <input type="hidden" name="supplierId" value={supplierId} />
           <input type="hidden" name="items" value={serializedItems} />
 
@@ -289,25 +282,11 @@ export function RestockOrderFormDialog({
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="restock-manager">Manager</Label>
-              <Select
-                value={managerId}
-                onValueChange={(value) => setManagerId(value ?? "")}
-              >
-                <SelectTrigger
-                  id="restock-manager"
-                  className="w-full"
-                  aria-invalid={Boolean(state.errors?.managerId?.length)}
-                >
-                  <SelectValue placeholder="Select manager" />
-                </SelectTrigger>
-                <SelectContent>
-                  {managers.map((manager) => (
-                    <SelectItem key={manager.id} value={manager.id}>
-                      {manager.name} ({manager.role})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Input
+                id="restock-manager"
+                value={`${currentUser.name} (${currentUser.role})`}
+                readOnly
+              />
               <FieldError errors={state.errors} name="managerId" />
             </div>
 

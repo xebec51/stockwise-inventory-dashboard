@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { Prisma } from "@/generated/prisma/client";
 
 import { type MutationState } from "@/lib/actions";
+import { requireCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import {
   supplierFormSchema,
@@ -119,6 +120,7 @@ export async function createSupplier(
   formData: FormData
 ): Promise<MutationState> {
   try {
+    await requireCurrentUser(["ADMIN"]);
     const values = parseSupplierFormData(formData);
     const emailError = await ensureUniqueSupplierEmail(values.email);
 
@@ -170,6 +172,12 @@ export async function createSupplier(
       message: "Supplier created successfully.",
     };
   } catch (error) {
+    if (error instanceof Error && error.message === "FORBIDDEN") {
+      return {
+        message: "Only admins can manage supplier accounts.",
+      };
+    }
+
     return validationErrorState(error);
   }
 }
@@ -179,6 +187,7 @@ export async function updateSupplier(
   formData: FormData
 ): Promise<MutationState> {
   try {
+    await requireCurrentUser(["ADMIN"]);
     const values = parseSupplierFormData(formData);
 
     if (!values.id) {
@@ -244,6 +253,12 @@ export async function updateSupplier(
       message: "Supplier updated successfully.",
     };
   } catch (error) {
+    if (error instanceof Error && error.message === "FORBIDDEN") {
+      return {
+        message: "Only admins can manage supplier accounts.",
+      };
+    }
+
     return validationErrorState(error);
   }
 }
@@ -252,6 +267,20 @@ export async function deleteSupplier(
   _state: MutationState,
   formData: FormData
 ): Promise<MutationState> {
+  try {
+    await requireCurrentUser(["ADMIN"]);
+  } catch (error) {
+    if (error instanceof Error && error.message === "FORBIDDEN") {
+      return {
+        message: "Only admins can manage supplier accounts.",
+      };
+    }
+
+    return {
+      message: "You must be signed in to delete suppliers.",
+    };
+  }
+
   const id = formData.get("id")?.toString();
 
   if (!id) {

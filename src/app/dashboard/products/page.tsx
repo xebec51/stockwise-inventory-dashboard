@@ -23,13 +23,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatCurrency } from "@/lib/formatters";
+import { getCurrentUser } from "@/lib/auth";
+import { formatCurrency, formatStatusLabel } from "@/lib/formatters";
 import { prisma } from "@/lib/prisma";
 import { getStockStatus } from "@/lib/stock";
 
 export const dynamic = "force-dynamic";
 
 export default async function ProductsPage() {
+  const currentUser = await getCurrentUser();
   const products = await prisma.product.findMany({
     select: {
       id: true,
@@ -70,27 +72,30 @@ export default async function ProductsPage() {
         description="Live product data now flows from Prisma into the dashboard, including stock context, category assignment, warehouse location, and pricing references."
         action={
           <div className="flex flex-wrap justify-end gap-2">
-            <ExportButtons
-              filenamePrefix="stockwise-products"
-              rows={products.map((product) => ({
-                name: product.name,
-                sku: product.sku,
-                category: product.category.name,
-                currentStock: product.currentStock,
-                minimumStock: product.minimumStock,
-                stockStatus: getStockStatus(
-                  product.currentStock,
-                  product.minimumStock
-                ),
-                unit: product.unit,
-                rackLocation: product.rackLocation,
-                purchasePrice: product.purchasePrice.toString(),
-                sellingPrice: product.sellingPrice.toString(),
-                qrCode: product.qrCode ?? product.sku,
-              }))}
-              sheetName="Products"
-            />
-            <ProductFormDialog categories={categories} mode="create" />
+            {currentUser && currentUser.role !== "STAFF" ? (
+              <ExportButtons
+                filenamePrefix="stockwise-products"
+                rows={products.map((product) => ({
+                  name: product.name,
+                  sku: product.sku,
+                  category: product.category.name,
+                  currentStock: product.currentStock,
+                  minimumStock: product.minimumStock,
+                  stockStatus: formatStatusLabel(
+                    getStockStatus(product.currentStock, product.minimumStock)
+                  ),
+                  unit: product.unit,
+                  rackLocation: product.rackLocation,
+                  purchasePrice: product.purchasePrice.toString(),
+                  sellingPrice: product.sellingPrice.toString(),
+                  qrCode: product.qrCode ?? product.sku,
+                }))}
+                sheetName="Products"
+              />
+            ) : null}
+            {currentUser?.role === "ADMIN" ? (
+              <ProductFormDialog categories={categories} mode="create" />
+            ) : null}
           </div>
         }
       />
@@ -169,32 +174,36 @@ export default async function ProductsPage() {
                             label={product.name}
                             value={product.qrCode ?? product.sku}
                           />
-                          <ProductFormDialog
-                            categories={categories}
-                            mode="edit"
-                            product={{
-                              id: product.id,
-                              categoryId: product.categoryId,
-                              name: product.name,
-                              sku: product.sku,
-                              description: product.description,
-                              purchasePrice: product.purchasePrice.toString(),
-                              sellingPrice: product.sellingPrice.toString(),
-                              currentStock: product.currentStock,
-                              minimumStock: product.minimumStock,
-                              unit: product.unit,
-                              rackLocation: product.rackLocation,
-                              imageUrl: product.imageUrl,
-                              qrCode: product.qrCode,
-                            }}
-                          />
-                          <DeleteConfirmDialog
-                            action={deleteProduct}
-                            description="Delete this product from the catalog. Stock status remains computed and will disappear with the record."
-                            entityId={product.id}
-                            entityLabel={product.name}
-                            title="Delete product"
-                          />
+                          {currentUser?.role === "ADMIN" ? (
+                            <>
+                              <ProductFormDialog
+                                categories={categories}
+                                mode="edit"
+                                product={{
+                                  id: product.id,
+                                  categoryId: product.categoryId,
+                                  name: product.name,
+                                  sku: product.sku,
+                                  description: product.description,
+                                  purchasePrice: product.purchasePrice.toString(),
+                                  sellingPrice: product.sellingPrice.toString(),
+                                  currentStock: product.currentStock,
+                                  minimumStock: product.minimumStock,
+                                  unit: product.unit,
+                                  rackLocation: product.rackLocation,
+                                  imageUrl: product.imageUrl,
+                                  qrCode: product.qrCode,
+                                }}
+                              />
+                              <DeleteConfirmDialog
+                                action={deleteProduct}
+                                description="Delete this product from the catalog. Stock status remains computed and will disappear with the record."
+                                entityId={product.id}
+                                entityLabel={product.name}
+                                title="Delete product"
+                              />
+                            </>
+                          ) : null}
                         </div>
                       </TableCell>
                     </TableRow>

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { Prisma } from "@/generated/prisma/client";
 
 import { type MutationState } from "@/lib/actions";
+import { requireCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import {
   productFormSchema,
@@ -105,6 +106,7 @@ export async function createProduct(
   formData: FormData
 ): Promise<MutationState> {
   try {
+    await requireCurrentUser(["ADMIN"]);
     const values = parseProductFormData(formData);
 
     const [uniqueError, categoryExists] = await Promise.all([
@@ -149,6 +151,12 @@ export async function createProduct(
       message: "Product created successfully.",
     };
   } catch (error) {
+    if (error instanceof Error && error.message === "FORBIDDEN") {
+      return {
+        message: "Only admins can manage products.",
+      };
+    }
+
     return validationErrorState(error);
   }
 }
@@ -158,6 +166,7 @@ export async function updateProduct(
   formData: FormData
 ): Promise<MutationState> {
   try {
+    await requireCurrentUser(["ADMIN"]);
     const values = parseProductFormData(formData);
 
     if (!values.id) {
@@ -209,6 +218,12 @@ export async function updateProduct(
       message: "Product updated successfully.",
     };
   } catch (error) {
+    if (error instanceof Error && error.message === "FORBIDDEN") {
+      return {
+        message: "Only admins can manage products.",
+      };
+    }
+
     return validationErrorState(error);
   }
 }
@@ -217,6 +232,20 @@ export async function deleteProduct(
   _state: MutationState,
   formData: FormData
 ): Promise<MutationState> {
+  try {
+    await requireCurrentUser(["ADMIN"]);
+  } catch (error) {
+    if (error instanceof Error && error.message === "FORBIDDEN") {
+      return {
+        message: "Only admins can manage products.",
+      };
+    }
+
+    return {
+      message: "You must be signed in to delete products.",
+    };
+  }
+
   const id = formData.get("id")?.toString();
 
   if (!id) {

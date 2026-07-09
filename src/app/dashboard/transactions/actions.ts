@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { Prisma, TransactionType } from "@/generated/prisma/client";
 
 import { type MutationState } from "@/lib/actions";
+import { requireCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import {
   transactionDecisionSchema,
@@ -120,22 +121,6 @@ async function ensureCreatorExists(createdById: string) {
   });
 }
 
-async function ensureApproverExists(approverId: string) {
-  return prisma.user.findFirst({
-    where: {
-      id: approverId,
-      status: "ACTIVE",
-      role: {
-        in: ["ADMIN", "MANAGER"],
-      },
-    },
-    select: {
-      id: true,
-      name: true,
-    },
-  });
-}
-
 function getApprovalStatus(type: TransactionType) {
   return type === "INCOMING" ? "COMPLETED" : "APPROVED";
 }
@@ -163,8 +148,9 @@ export async function createTransaction(
   formData: FormData
 ): Promise<MutationState> {
   try {
+    const sessionUser = await requireCurrentUser(["ADMIN", "STAFF"]);
     const values = parseTransactionFormData(formData);
-    const creator = await ensureCreatorExists(values.createdById);
+    const creator = await ensureCreatorExists(sessionUser.id);
 
     if (!creator) {
       return {
@@ -227,7 +213,7 @@ export async function createTransaction(
         const transaction = await tx.transaction.create({
           data: {
             transactionNumber,
-            createdById: values.createdById,
+            createdById: sessionUser.id,
             type: values.type,
             status: "PENDING",
             destination: values.destination,
@@ -255,7 +241,7 @@ export async function createTransaction(
 
         await tx.activityLog.create({
           data: {
-            userId: values.createdById,
+            userId: sessionUser.id,
             action: "CREATE",
             module: "TRANSACTIONS",
             description: buildCreateDescription(
@@ -279,6 +265,12 @@ export async function createTransaction(
       message: "Transaction created successfully and is now pending review.",
     };
   } catch (error) {
+    if (error instanceof Error && error.message === "FORBIDDEN") {
+      return {
+        message: "Only staff and admins can create transactions.",
+      };
+    }
+
     return validationErrorState(error);
   }
 }
@@ -288,17 +280,8 @@ export async function approveTransaction(
   formData: FormData
 ): Promise<MutationState> {
   try {
+    const sessionUser = await requireCurrentUser(["ADMIN", "MANAGER"]);
     const values = parseTransactionDecisionFormData(formData);
-    const approver = await ensureApproverExists(values.approverId);
-
-    if (!approver) {
-      return {
-        errors: {
-          approverId: ["Select an active manager or admin approver."],
-        },
-        message: "Approver account could not be found.",
-      };
-    }
 
     const approvedAt = new Date();
 
@@ -396,7 +379,7 @@ export async function approveTransaction(
           },
           data: {
             status: getApprovalStatus(transaction.type),
-            approvedById: values.approverId,
+            approvedById: sessionUser.id,
             approvedAt,
             notes: values.notes
               ? transaction.notes
@@ -408,13 +391,13 @@ export async function approveTransaction(
 
         await tx.activityLog.create({
           data: {
-            userId: values.approverId,
+            userId: sessionUser.id,
             action: "APPROVE",
             module: "TRANSACTIONS",
             description: buildDecisionDescription(
               transaction.transactionNumber,
               "APPROVE",
-              approver.name
+              sessionUser.name ?? "Manager"
             ),
             ipAddress: "127.0.0.1",
           },
@@ -440,6 +423,12 @@ export async function approveTransaction(
       message: "Transaction approved and stock levels were updated.",
     };
   } catch (error) {
+    if (error instanceof Error && error.message === "FORBIDDEN") {
+      return {
+        message: "Only managers and admins can approve transactions.",
+      };
+    }
+
     return validationErrorState(error);
   }
 }
@@ -449,17 +438,8 @@ export async function rejectTransaction(
   formData: FormData
 ): Promise<MutationState> {
   try {
+    const sessionUser = await requireCurrentUser(["ADMIN", "MANAGER"]);
     const values = parseTransactionDecisionFormData(formData);
-    const approver = await ensureApproverExists(values.approverId);
-
-    if (!approver) {
-      return {
-        errors: {
-          approverId: ["Select an active manager or admin approver."],
-        },
-        message: "Approver account could not be found.",
-      };
-    }
 
     const rejectedAt = new Date();
 
@@ -501,7 +481,7 @@ export async function rejectTransaction(
           },
           data: {
             status: "REJECTED",
-            approvedById: values.approverId,
+            approvedById: sessionUser.id,
             approvedAt: rejectedAt,
             notes: values.notes
               ? transaction.notes
@@ -513,13 +493,13 @@ export async function rejectTransaction(
 
         await tx.activityLog.create({
           data: {
-            userId: values.approverId,
+            userId: sessionUser.id,
             action: "REJECT",
             module: "TRANSACTIONS",
             description: buildDecisionDescription(
               transaction.transactionNumber,
               "REJECT",
-              approver.name
+              sessionUser.name ?? "Manager"
             ),
             ipAddress: "127.0.0.1",
           },
@@ -545,6 +525,12 @@ export async function rejectTransaction(
       message: "Transaction rejected without changing stock.",
     };
   } catch (error) {
+    if (error instanceof Error && error.message === "FORBIDDEN") {
+      return {
+        message: "Only managers and admins can reject transactions.",
+      };
+    }
+
     return validationErrorState(error);
   }
 }

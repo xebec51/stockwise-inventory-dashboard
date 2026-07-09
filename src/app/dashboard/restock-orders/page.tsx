@@ -27,6 +27,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { getCurrentUser } from "@/lib/auth";
 import {
   formatCurrency,
   formatDate,
@@ -54,8 +55,21 @@ function getStatusBadgeVariant(status: string) {
 }
 
 export default async function RestockOrdersPage() {
-  const [restockOrders, managers, suppliers, products] = await Promise.all([
+  const currentUser = await getCurrentUser();
+  const [restockOrders, suppliers, products] = await Promise.all([
     prisma.restockOrder.findMany({
+      where:
+        currentUser?.role === "SUPPLIER"
+          ? {
+              supplier: {
+                userId: currentUser.id,
+              },
+            }
+          : currentUser?.role === "MANAGER"
+            ? {
+                managerId: currentUser.id,
+              }
+            : undefined,
       select: {
         id: true,
         poNumber: true,
@@ -112,20 +126,6 @@ export default async function RestockOrdersPage() {
         },
       },
       orderBy: [{ orderDate: "desc" }, { createdAt: "desc" }],
-    }),
-    prisma.user.findMany({
-      where: {
-        status: "ACTIVE",
-        role: {
-          in: ["ADMIN", "MANAGER"],
-        },
-      },
-      select: {
-        id: true,
-        name: true,
-        role: true,
-      },
-      orderBy: [{ name: "asc" }],
     }),
     prisma.supplier.findMany({
       where: {
@@ -184,6 +184,10 @@ export default async function RestockOrdersPage() {
     }
   );
 
+  const canCreateRestockOrders =
+    currentUser?.role === "ADMIN" || currentUser?.role === "MANAGER";
+  const isSupplier = currentUser?.role === "SUPPLIER";
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -191,15 +195,17 @@ export default async function RestockOrdersPage() {
         title="Supplier replenishment coordination"
         description="Restock orders now move from creation through supplier confirmation, delivery transit, receipt, linked incoming transactions, and optional post-delivery supplier ratings."
         action={
-          <RestockOrderFormDialog
-            managers={managers}
-            products={products}
-            suppliers={suppliers.map((supplier) => ({
-              id: supplier.id,
-              companyName: supplier.companyName,
-              contactName: supplier.user.name,
-            }))}
-          />
+          canCreateRestockOrders && currentUser ? (
+            <RestockOrderFormDialog
+              currentUser={currentUser}
+              products={products}
+              suppliers={suppliers.map((supplier) => ({
+                id: supplier.id,
+                companyName: supplier.companyName,
+                contactName: supplier.user.name,
+              }))}
+            />
+          ) : null
         }
       />
 
@@ -329,14 +335,17 @@ export default async function RestockOrdersPage() {
                     <TableCell className="min-w-80">
                       <div className="space-y-2">
                         {order.items.map((item) => (
-                          <div key={item.id} className="rounded-xl border border-border/60 px-3 py-2">
+                          <div
+                            key={item.id}
+                            className="rounded-xl border border-border/60 px-3 py-2"
+                          >
                             <p className="text-sm font-medium">
                               {item.product.name} ({item.product.sku})
                             </p>
                             <p className="text-xs text-muted-foreground">
                               Qty {item.quantity} {item.product.unit}
                               {item.estimatedPrice
-                                ? ` • ${formatCurrency(item.estimatedPrice.toString())}`
+                                ? ` | ${formatCurrency(item.estimatedPrice.toString())}`
                                 : ""}
                             </p>
                           </div>
@@ -376,7 +385,7 @@ export default async function RestockOrdersPage() {
                             {order.supplierRating.feedback ?? "No feedback provided."}
                           </p>
                         </div>
-                      ) : order.status === "RECEIVED" ? (
+                      ) : order.status === "RECEIVED" && canCreateRestockOrders ? (
                         <SupplierRatingFormDialog
                           managerId={order.manager.id}
                           managerLabel={`${order.manager.name} (${order.manager.role})`}
@@ -393,46 +402,64 @@ export default async function RestockOrdersPage() {
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         {order.status === "PENDING" ? (
-                          <>
-                            <RestockOrderStatusDialog
-                              actorId={order.supplier.user.id}
-                              actorLabel={`${order.supplier.user.name} (Supplier)`}
-                              description="The assigned supplier can confirm the order and begin delivery planning."
-                              mode="confirm"
-                              orderId={order.id}
-                              poNumber={order.poNumber}
-                            />
-                            <RestockOrderStatusDialog
-                              actorId={order.supplier.user.id}
-                              actorLabel={`${order.supplier.user.name} (Supplier)`}
-                              description="Reject the order if the supplier cannot fulfill this purchase request."
-                              mode="reject"
-                              orderId={order.id}
-                              poNumber={order.poNumber}
-                            />
-                          </>
+                          isSupplier ? (
+                            <>
+                              <RestockOrderStatusDialog
+                                actorId={order.supplier.user.id}
+                                actorLabel={`${order.supplier.user.name} (Supplier)`}
+                                description="The assigned supplier can confirm the order and begin delivery planning."
+                                mode="confirm"
+                                orderId={order.id}
+                                poNumber={order.poNumber}
+                              />
+                              <RestockOrderStatusDialog
+                                actorId={order.supplier.user.id}
+                                actorLabel={`${order.supplier.user.name} (Supplier)`}
+                                description="Reject the order if the supplier cannot fulfill this purchase request."
+                                mode="reject"
+                                orderId={order.id}
+                                poNumber={order.poNumber}
+                              />
+                            </>
+                          ) : (
+                            <span className="text-sm text-muted-foreground">
+                              Awaiting supplier action
+                            </span>
+                          )
                         ) : null}
 
                         {order.status === "CONFIRMED" ? (
-                          <RestockOrderStatusDialog
-                            actorId={order.supplier.user.id}
-                            actorLabel={`${order.supplier.user.name} (Supplier)`}
-                            description="Mark the confirmed order in transit once the shipment has left the supplier."
-                            mode="in_transit"
-                            orderId={order.id}
-                            poNumber={order.poNumber}
-                          />
+                          isSupplier ? (
+                            <RestockOrderStatusDialog
+                              actorId={order.supplier.user.id}
+                              actorLabel={`${order.supplier.user.name} (Supplier)`}
+                              description="Mark the confirmed order in transit once the shipment has left the supplier."
+                              mode="in_transit"
+                              orderId={order.id}
+                              poNumber={order.poNumber}
+                            />
+                          ) : (
+                            <span className="text-sm text-muted-foreground">
+                              Awaiting supplier dispatch
+                            </span>
+                          )
                         ) : null}
 
                         {order.status === "IN_TRANSIT" ? (
-                          <RestockOrderStatusDialog
-                            actorId={order.manager.id}
-                            actorLabel={`${order.manager.name} (${order.manager.role})`}
-                            description="Mark the order received to create the linked incoming transaction and update product stock."
-                            mode="receive"
-                            orderId={order.id}
-                            poNumber={order.poNumber}
-                          />
+                          canCreateRestockOrders ? (
+                            <RestockOrderStatusDialog
+                              actorId={order.manager.id}
+                              actorLabel={`${order.manager.name} (${order.manager.role})`}
+                              description="Mark the order received to create the linked incoming transaction and update product stock."
+                              mode="receive"
+                              orderId={order.id}
+                              poNumber={order.poNumber}
+                            />
+                          ) : (
+                            <span className="text-sm text-muted-foreground">
+                              Awaiting warehouse receipt
+                            </span>
+                          )
                         ) : null}
 
                         {["RECEIVED", "REJECTED"].includes(order.status) ? (

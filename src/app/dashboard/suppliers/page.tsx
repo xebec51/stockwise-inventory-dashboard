@@ -22,6 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { getCurrentUser } from "@/lib/auth";
 import { formatDate, formatStatusLabel } from "@/lib/formatters";
 import { prisma } from "@/lib/prisma";
 
@@ -42,6 +43,7 @@ function getStatusBadgeVariant(status: string) {
 }
 
 export default async function SuppliersPage() {
+  const currentUser = await getCurrentUser();
   const suppliers = await prisma.supplier.findMany({
     select: {
       id: true,
@@ -127,7 +129,7 @@ export default async function SuppliersPage() {
         eyebrow="Suppliers"
         title="Supplier relationship workspace"
         description="Supplier profiles now load from Prisma with linked account status, contact data, restock activity, and rating context for the next workflow phases."
-        action={<SupplierFormDialog mode="create" />}
+        action={currentUser?.role === "ADMIN" ? <SupplierFormDialog mode="create" /> : null}
       />
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -316,29 +318,37 @@ export default async function SuppliersPage() {
                       <TableCell>{formatDate(supplier.createdAt)}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
-                          <SupplierFormDialog
-                            mode="edit"
-                            supplier={{
-                              id: supplier.id,
-                              name: supplier.user.name,
-                              email: supplier.user.email,
-                              status: supplier.user.status,
-                              companyName: supplier.companyName,
-                              contactPerson: supplier.contactPerson,
-                              phone: supplier.phone,
-                              supplierCategory: supplier.supplierCategory,
-                              bankAccount: supplier.bankAccount,
-                              address: supplier.address,
-                              avatarUrl: supplier.user.avatarUrl,
-                            }}
-                          />
-                          <DeleteConfirmDialog
-                            action={deleteSupplier}
-                            description="Delete this supplier only when it has no operational history, restock references, or retained audit data."
-                            entityId={supplier.id}
-                            entityLabel={supplier.companyName}
-                            title="Delete supplier"
-                          />
+                          {currentUser?.role === "ADMIN" ? (
+                            <>
+                              <SupplierFormDialog
+                                mode="edit"
+                                supplier={{
+                                  id: supplier.id,
+                                  name: supplier.user.name,
+                                  email: supplier.user.email,
+                                  status: supplier.user.status,
+                                  companyName: supplier.companyName,
+                                  contactPerson: supplier.contactPerson,
+                                  phone: supplier.phone,
+                                  supplierCategory: supplier.supplierCategory,
+                                  bankAccount: supplier.bankAccount,
+                                  address: supplier.address,
+                                  avatarUrl: supplier.user.avatarUrl,
+                                }}
+                              />
+                              <DeleteConfirmDialog
+                                action={deleteSupplier}
+                                description="Delete this supplier only when it has no operational history, restock references, or retained audit data."
+                                entityId={supplier.id}
+                                entityLabel={supplier.companyName}
+                                title="Delete supplier"
+                              />
+                            </>
+                          ) : (
+                            <span className="text-sm text-muted-foreground">
+                              Read only
+                            </span>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>

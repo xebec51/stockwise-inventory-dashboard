@@ -20,24 +20,13 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { type MutationState, initialMutationState } from "@/lib/actions";
-
-type ApproverOption = {
-  id: string;
-  name: string;
-  role: string;
-};
+import type { AuthSessionUser } from "@/lib/auth";
 
 type TransactionReviewDialogProps = {
-  approvers: ApproverOption[];
+  currentUser: AuthSessionUser;
   mode: "approve" | "reject";
   transaction: {
     id: string;
@@ -63,12 +52,11 @@ function FieldError({
 }
 
 export function TransactionReviewDialog({
-  approvers,
+  currentUser,
   mode,
   transaction,
 }: TransactionReviewDialogProps) {
   const [open, setOpen] = useState(false);
-  const [approverId, setApproverId] = useState(approvers[0]?.id ?? "");
   const action = mode === "approve" ? approveTransaction : rejectTransaction;
   const [state, formAction] = useActionState(action, initialMutationState);
 
@@ -83,10 +71,6 @@ export function TransactionReviewDialog({
   }, [state.success]);
 
   function handleOpenChange(nextOpen: boolean) {
-    if (nextOpen) {
-      setApproverId(approvers[0]?.id ?? "");
-    }
-
     setOpen(nextOpen);
   }
 
@@ -133,7 +117,7 @@ export function TransactionReviewDialog({
 
         <form action={formAction} className="space-y-4">
           <input type="hidden" name="id" value={transaction.id} />
-          <input type="hidden" name="approverId" value={approverId} />
+          <input type="hidden" name="approverId" value={currentUser.id} />
 
           <Alert variant={isApprove ? "default" : "destructive"}>
             <ShieldAlert className="size-4" />
@@ -156,25 +140,11 @@ export function TransactionReviewDialog({
 
           <div className="space-y-2">
             <Label htmlFor={`transaction-approver-${mode}`}>Approver</Label>
-            <Select
-              value={approverId}
-              onValueChange={(value) => setApproverId(value ?? "")}
-            >
-              <SelectTrigger
-                id={`transaction-approver-${mode}`}
-                className="w-full"
-                aria-invalid={Boolean(state.errors?.approverId?.length)}
-              >
-                <SelectValue placeholder="Select approver" />
-              </SelectTrigger>
-              <SelectContent>
-                {approvers.map((approver) => (
-                  <SelectItem key={approver.id} value={approver.id}>
-                    {approver.name} ({approver.role})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Input
+              id={`transaction-approver-${mode}`}
+              value={`${currentUser.name} (${currentUser.role})`}
+              readOnly
+            />
             <FieldError errors={state.errors} name="approverId" />
           </div>
 

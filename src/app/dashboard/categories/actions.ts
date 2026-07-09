@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { Prisma } from "@/generated/prisma/client";
 
 import { type MutationState } from "@/lib/actions";
+import { requireCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import {
   categoryFormSchema,
@@ -72,6 +73,7 @@ export async function createCategory(
   formData: FormData
 ): Promise<MutationState> {
   try {
+    await requireCurrentUser(["ADMIN"]);
     const values = parseCategoryFormData(formData);
     const slugError = await ensureUniqueCategorySlug(values.slug);
 
@@ -95,6 +97,12 @@ export async function createCategory(
       message: "Category created successfully.",
     };
   } catch (error) {
+    if (error instanceof Error && error.message === "FORBIDDEN") {
+      return {
+        message: "Only admins can manage categories.",
+      };
+    }
+
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       return validationErrorState(error);
     }
@@ -112,6 +120,7 @@ export async function updateCategory(
   formData: FormData
 ): Promise<MutationState> {
   try {
+    await requireCurrentUser(["ADMIN"]);
     const values = parseCategoryFormData(formData);
 
     if (!values.id) {
@@ -143,6 +152,12 @@ export async function updateCategory(
       message: "Category updated successfully.",
     };
   } catch (error) {
+    if (error instanceof Error && error.message === "FORBIDDEN") {
+      return {
+        message: "Only admins can manage categories.",
+      };
+    }
+
     return validationErrorState(error);
   }
 }
@@ -151,6 +166,20 @@ export async function deleteCategory(
   _state: MutationState,
   formData: FormData
 ): Promise<MutationState> {
+  try {
+    await requireCurrentUser(["ADMIN"]);
+  } catch (error) {
+    if (error instanceof Error && error.message === "FORBIDDEN") {
+      return {
+        message: "Only admins can manage categories.",
+      };
+    }
+
+    return {
+      message: "You must be signed in to delete categories.",
+    };
+  }
+
   const id = formData.get("id")?.toString();
 
   if (!id) {

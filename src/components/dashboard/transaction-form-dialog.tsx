@@ -35,12 +35,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { type MutationState, initialMutationState } from "@/lib/actions";
-
-type InternalUserOption = {
-  id: string;
-  name: string;
-  role: string;
-};
+import type { AuthSessionUser } from "@/lib/auth";
 
 type ProductOption = {
   id: string;
@@ -51,7 +46,7 @@ type ProductOption = {
 };
 
 type TransactionFormDialogProps = {
-  creators: InternalUserOption[];
+  currentUser: AuthSessionUser;
   products: ProductOption[];
 };
 
@@ -192,13 +187,12 @@ function TransactionItemRow({
 }
 
 export function TransactionFormDialog({
-  creators,
+  currentUser,
   products,
 }: TransactionFormDialogProps) {
   const [open, setOpen] = useState(false);
   const [typeValue, setTypeValue] =
     useState<(typeof transactionTypeOptions)[number]>("INCOMING");
-  const [createdByValue, setCreatedByValue] = useState<string>(creators[0]?.id ?? "");
   const [items, setItems] = useState<TransactionLineDraft[]>([createEmptyLine()]);
   const [state, formAction] = useActionState(createTransaction, initialMutationState);
 
@@ -215,7 +209,6 @@ export function TransactionFormDialog({
   function handleOpenChange(nextOpen: boolean) {
     if (nextOpen) {
       setTypeValue("INCOMING");
-      setCreatedByValue(creators[0]?.id ?? "");
       setItems([createEmptyLine()]);
     }
 
@@ -257,7 +250,7 @@ export function TransactionFormDialog({
 
         <form action={formAction} className="space-y-4">
           <input type="hidden" name="type" value={typeValue} />
-          <input type="hidden" name="createdById" value={createdByValue} />
+          <input type="hidden" name="createdById" value={currentUser.id} />
           <input type="hidden" name="items" value={serializedItems} />
 
           {state.message && !state.success ? (
@@ -270,25 +263,11 @@ export function TransactionFormDialog({
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="transaction-created-by">Created By</Label>
-              <Select
-                value={createdByValue}
-                onValueChange={(value) => setCreatedByValue(value ?? "")}
-              >
-                <SelectTrigger
-                  id="transaction-created-by"
-                  className="w-full"
-                  aria-invalid={Boolean(state.errors?.createdById?.length)}
-                >
-                  <SelectValue placeholder="Select creator" />
-                </SelectTrigger>
-                <SelectContent>
-                  {creators.map((creator) => (
-                    <SelectItem key={creator.id} value={creator.id}>
-                      {creator.name} ({creator.role})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Input
+                id="transaction-created-by"
+                value={`${currentUser.name} (${currentUser.role})`}
+                readOnly
+              />
               <FieldError errors={state.errors} name="createdById" />
             </div>
 
