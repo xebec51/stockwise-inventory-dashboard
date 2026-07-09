@@ -1,8 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -10,4 +5,260 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+enum UserRole {
+  ADMIN
+  MANAGER
+  STAFF
+  SUPPLIER
+}
+
+enum UserStatus {
+  ACTIVE
+  PENDING
+  REJECTED
+  INACTIVE
+}
+
+enum TransactionType {
+  INCOMING
+  OUTGOING
+}
+
+enum TransactionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  COMPLETED
+}
+
+enum RestockOrderStatus {
+  PENDING
+  CONFIRMED
+  REJECTED
+  IN_TRANSIT
+  RECEIVED
+}
+
+model User {
+  id                   String           @id @default(cuid())
+  name                 String
+  email                String           @unique
+  password             String
+  role                 UserRole
+  status               UserStatus
+  phone                String?
+  avatarUrl            String?          @map("avatar_url")
+  createdAt            DateTime         @default(now()) @map("created_at")
+  updatedAt            DateTime         @updatedAt @map("updated_at")
+  supplierProfile      Supplier?        @relation("UserSupplierProfile")
+  createdTransactions  Transaction[]    @relation("TransactionCreator")
+  approvedTransactions Transaction[]    @relation("TransactionApprover")
+  managedRestockOrders RestockOrder[]   @relation("RestockOrderManager")
+  supplierRatingsGiven SupplierRating[] @relation("SupplierRatingManager")
+  activityLogs         ActivityLog[]
+
+  @@index([role])
+  @@index([status])
+  @@map("users")
+}
+
+model Supplier {
+  id               String           @id @default(cuid())
+  userId           String           @unique @map("user_id")
+  companyName      String           @map("company_name")
+  address          String?
+  contactPerson    String?          @map("contact_person")
+  phone            String?
+  supplierCategory String?          @map("supplier_category")
+  bankAccount      String?          @map("bank_account")
+  createdAt        DateTime         @default(now()) @map("created_at")
+  updatedAt        DateTime         @updatedAt @map("updated_at")
+  user             User             @relation("UserSupplierProfile", fields: [userId], references: [id])
+  restockOrders    RestockOrder[]
+  supplierRatings  SupplierRating[]
+
+  @@index([companyName])
+  @@index([supplierCategory])
+  @@map("suppliers")
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String?
+  imageUrl    String?   @map("image_url")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  products    Product[]
+
+  @@index([name])
+  @@map("categories")
+}
+
+model Product {
+  id                String             @id @default(cuid())
+  categoryId        String             @map("category_id")
+  name              String
+  sku               String             @unique
+  description       String?
+  purchasePrice     Decimal            @map("purchase_price") @db.Decimal(12, 2)
+  sellingPrice      Decimal            @map("selling_price") @db.Decimal(12, 2)
+  currentStock      Int                @map("current_stock")
+  minimumStock      Int                @map("minimum_stock")
+  unit              String
+  rackLocation      String?            @map("rack_location")
+  imageUrl          String?            @map("image_url")
+  qrCode            String?            @unique @map("qr_code")
+  createdAt         DateTime           @default(now()) @map("created_at")
+  updatedAt         DateTime           @updatedAt @map("updated_at")
+  category          Category           @relation(fields: [categoryId], references: [id])
+  transactionItems  TransactionItem[]
+  restockOrderItems RestockOrderItem[]
+
+  // Prisma does not support CHECK constraints directly in schema models.
+  // Enforce nonnegative stock values and derived stock status in app logic
+  // or with manual SQL added to a migration later.
+  @@index([categoryId])
+  @@index([name])
+  @@index([currentStock])
+  @@index([minimumStock])
+  @@index([rackLocation])
+  @@map("products")
+}
+
+model Transaction {
+  id                   String            @id @default(cuid())
+  transactionNumber    String            @unique @map("transaction_number")
+  createdById          String            @map("created_by")
+  approvedById         String?           @map("approved_by")
+  sourceRestockOrderId String?           @unique @map("source_restock_order_id")
+  type                 TransactionType
+  status               TransactionStatus
+  destination          String?
+  notes                String?
+  transactionDate      DateTime          @map("transaction_date")
+  approvedAt           DateTime?         @map("approved_at")
+  createdAt            DateTime          @default(now()) @map("created_at")
+  updatedAt            DateTime          @updatedAt @map("updated_at")
+  creator              User              @relation("TransactionCreator", fields: [createdById], references: [id])
+  approver             User?             @relation("TransactionApprover", fields: [approvedById], references: [id])
+  sourceRestockOrder   RestockOrder?     @relation("RestockOrderSourceTransaction", fields: [sourceRestockOrderId], references: [id])
+  items                TransactionItem[]
+
+  @@index([createdById])
+  @@index([approvedById])
+  @@index([sourceRestockOrderId])
+  @@index([type])
+  @@index([status])
+  @@index([transactionDate])
+  @@index([createdAt])
+  @@map("transactions")
+}
+
+model TransactionItem {
+  id            String      @id @default(cuid())
+  transactionId String      @map("transaction_id")
+  productId     String      @map("product_id")
+  quantity      Int
+  stockBefore   Int         @map("stock_before")
+  stockAfter    Int         @map("stock_after")
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+  transaction   Transaction @relation(fields: [transactionId], references: [id])
+  product       Product     @relation(fields: [productId], references: [id])
+
+  // Prisma cannot declare nonnegative quantity or stock audit CHECK constraints
+  // here; add app validation now and raw SQL constraints later if needed.
+  @@unique([transactionId, productId])
+  @@index([transactionId])
+  @@index([productId])
+  @@map("transaction_items")
+}
+
+model RestockOrder {
+  id                   String             @id @default(cuid())
+  poNumber             String             @unique @map("po_number")
+  managerId            String             @map("manager_id")
+  supplierId           String             @map("supplier_id")
+  status               RestockOrderStatus
+  orderDate            DateTime           @map("order_date")
+  expectedDeliveryDate DateTime?          @map("expected_delivery_date")
+  notes                String?
+  confirmedAt          DateTime?          @map("confirmed_at")
+  receivedAt           DateTime?          @map("received_at")
+  createdAt            DateTime           @default(now()) @map("created_at")
+  updatedAt            DateTime           @updatedAt @map("updated_at")
+  manager              User               @relation("RestockOrderManager", fields: [managerId], references: [id])
+  supplier             Supplier           @relation(fields: [supplierId], references: [id])
+  items                RestockOrderItem[]
+  sourceTransaction    Transaction?       @relation("RestockOrderSourceTransaction")
+  supplierRating       SupplierRating?
+
+  @@index([managerId])
+  @@index([supplierId])
+  @@index([status])
+  @@index([orderDate])
+  @@index([expectedDeliveryDate])
+  @@map("restock_orders")
+}
+
+model RestockOrderItem {
+  id             String       @id @default(cuid())
+  restockOrderId String       @map("restock_order_id")
+  productId      String       @map("product_id")
+  quantity       Int
+  estimatedPrice Decimal?     @map("estimated_price") @db.Decimal(12, 2)
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+  restockOrder   RestockOrder @relation(fields: [restockOrderId], references: [id])
+  product        Product      @relation(fields: [productId], references: [id])
+
+  // Prisma cannot declare nonnegative quantity or estimated price checks in
+  // the schema; enforce these with app validation or manual SQL later.
+  @@unique([restockOrderId, productId])
+  @@index([restockOrderId])
+  @@index([productId])
+  @@map("restock_order_items")
+}
+
+model SupplierRating {
+  id             String       @id @default(cuid())
+  restockOrderId String       @unique @map("restock_order_id")
+  managerId      String       @map("manager_id")
+  supplierId     String       @map("supplier_id")
+  rating         Int
+  feedback       String?
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+  restockOrder   RestockOrder @relation(fields: [restockOrderId], references: [id])
+  manager        User         @relation("SupplierRatingManager", fields: [managerId], references: [id])
+  supplier       Supplier     @relation(fields: [supplierId], references: [id])
+
+  // Prisma cannot express a PostgreSQL CHECK constraint for rating BETWEEN 1
+  // AND 5 directly in the schema. Enforce this in validation now and add raw
+  // SQL to a migration later if strict database enforcement is required.
+  @@index([managerId])
+  @@index([supplierId])
+  @@index([rating])
+  @@map("supplier_ratings")
+}
+
+model ActivityLog {
+  id          String   @id @default(cuid())
+  userId      String   @map("user_id")
+  action      String
+  module      String
+  description String
+  ipAddress   String?  @map("ip_address")
+  createdAt   DateTime @default(now()) @map("created_at")
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([module])
+  @@index([action])
+  @@index([createdAt])
+  @@map("activity_logs")
 }
