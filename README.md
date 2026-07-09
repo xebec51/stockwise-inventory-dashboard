@@ -1,34 +1,117 @@
 # StockWise
 
-StockWise is a modern inventory intelligence dashboard for warehouse operations. It combines inventory visibility, supplier coordination, stock movement approvals, restock workflows, analytics, QR labels, and export tooling in a portfolio-grade SaaS admin experience.
+<p align="center">
+  <img src="https://img.shields.io/badge/Next.js-16-black?logo=next.js" />
+  <img src="https://img.shields.io/badge/TypeScript-Strict-blue?logo=typescript" />
+  <img src="https://img.shields.io/badge/Prisma-ORM-2D3748?logo=prisma" />
+  <img src="https://img.shields.io/badge/PostgreSQL-Neon-336791?logo=postgresql" />
+  <img src="https://img.shields.io/badge/Tailwind%20CSS-v4-38BDF8?logo=tailwindcss" />
+  <img src="https://img.shields.io/badge/shadcn/ui-Admin%20UI-black" />
+  <img src="https://img.shields.io/badge/Status-Portfolio%20Project-success" />
+</p>
 
-## Overview
+<p align="center">
+  <strong>Modern Inventory Intelligence Dashboard</strong><br/>
+  SaaS-style warehouse management system for stock control, supplier coordination, transaction approvals, analytics, QR labels, and export reporting.
+</p>
 
-StockWise is designed for warehouse teams that need more than simple CRUD screens. The product focuses on:
+---
 
-- product and category management
-- stock monitoring with computed stock status
-- incoming and outgoing transaction approvals
-- supplier and restock order workflows
-- inventory analytics and reporting
-- QR-ready product labels
-- exportable product and transaction data
-- audit-friendly operational history
+## Deskripsi Proyek
 
-## Features
+StockWise adalah dashboard manajemen inventaris modern yang dirancang untuk membantu tim gudang mengelola:
 
-- Next.js App Router dashboard with responsive sidebar and topbar
-- Prisma + PostgreSQL domain model for inventory operations
-- role-aware authentication with seeded demo accounts
-- product and category create, edit, delete workflows
-- supplier account and profile management
-- pending transaction creation and approval workflow
-- restock order lifecycle from pending to received
-- linked incoming transactions created on restock receipt
-- supplier rating capture after successful receipt
-- live dashboard analytics powered by Prisma aggregates
-- QR label generation and PNG download for products
-- CSV and XLSX export for products and transactions
+- produk dan kategori gudang
+- stok masuk dan stok keluar
+- approval transaksi
+- workflow restock order
+- supplier dan supplier rating
+- activity logs
+- inventory analytics
+- QR product labels
+- export report ke CSV dan XLSX
+
+Fokus utama proyek ini bukan sekadar CRUD, tetapi membangun pengalaman aplikasi admin yang terasa seperti produk SaaS nyata, dengan struktur domain yang rapi, workflow operasional yang jelas, dan UI yang siap dipresentasikan sebagai portfolio project.
+
+---
+
+## Key Highlights
+
+- End-to-end warehouse workflow dari products sampai restock receiving
+- Prisma + PostgreSQL schema yang mengikuti ERD operasional nyata
+- Role-based authentication untuk `ADMIN`, `MANAGER`, `STAFF`, dan `SUPPLIER`
+- Pending transaction approval yang benar-benar mengubah stock hanya saat disetujui
+- Restock order yang otomatis membuat linked incoming transaction saat status `RECEIVED`
+- Dashboard analytics berbasis query database nyata
+- QR code label generation dan export CSV/XLSX
+- Responsive admin dashboard dengan Next.js App Router + shadcn/ui
+
+---
+
+## Fitur Utama
+
+### 1. Product & Category Management
+
+- create, edit, delete category
+- create, edit, delete product
+- validasi Zod
+- computed stock status:
+  - `OUT_OF_STOCK`
+  - `LOW_STOCK`
+  - `IN_STOCK`
+
+### 2. Supplier Management
+
+- read supplier data dari database
+- create, edit, delete supplier profile
+- relasi supplier dengan user account
+- ringkasan restock dan rating supplier
+
+### 3. Transaction Workflow
+
+- create pending `INCOMING` dan `OUTGOING` transaction
+- multi-item transaction
+- approval dan rejection flow
+- `stockBefore` dan `stockAfter` tersimpan di `transaction_items`
+- outgoing transaction tidak boleh melebihi stock tersedia
+
+### 4. Restock Workflow
+
+- manager membuat restock order
+- supplier bisa confirm atau reject
+- supplier bisa mark `IN_TRANSIT`
+- manager bisa mark `RECEIVED`
+- saat `RECEIVED`, sistem membuat linked incoming transaction
+- stock produk otomatis diperbarui
+- supplier rating tersedia setelah order diterima
+
+### 5. Analytics Dashboard
+
+- total products
+- total inventory value
+- low stock count
+- out of stock count
+- pending transaction count
+- active restock order count
+- recent transactions
+- low stock products
+- charts dengan Recharts
+
+### 6. QR & Reporting
+
+- generate QR code untuk product identifier
+- download QR sebagai PNG
+- export products ke CSV/XLSX
+- export transactions ke CSV/XLSX
+
+### 7. Authentication & Role-Based Access
+
+- credential login dengan data user dari database
+- middleware protection untuk semua route dashboard
+- role-aware navigation
+- pembatasan akses berdasarkan role
+
+---
 
 ## Tech Stack
 
@@ -38,33 +121,50 @@ StockWise is designed for warehouse teams that need more than simple CRUD screen
 - shadcn/ui
 - Prisma ORM
 - PostgreSQL / Neon
-- NextAuth credentials authentication
+- NextAuth Credentials
 - Zod
 - Recharts
-- xlsx
+- TanStack Table
 - QRCode
+- xlsx
 - lucide-react
 
-## Roles
+---
 
-- `ADMIN`
-  - full dashboard access
-  - manage products, categories, suppliers, reports, and activity views
-- `MANAGER`
-  - create restock orders
-  - approve or reject transactions
-  - receive restock orders and rate suppliers
-  - monitor suppliers, inventory, transactions, and reports
-- `STAFF`
-  - create stock transactions
-  - view product and transaction workspaces
-- `SUPPLIER`
-  - view assigned restock orders
-  - confirm, reject, and mark orders in transit
+## User Roles
+
+### ADMIN
+
+- full dashboard access
+- manage products, categories, suppliers
+- approve workflow access
+- reporting and monitoring access
+
+### MANAGER
+
+- monitor stock dan inventory
+- approve/reject transactions
+- create restock orders
+- receive restock deliveries
+- rate suppliers
+
+### STAFF
+
+- create stock transactions
+- view products
+- view own transaction workspace
+
+### SUPPLIER
+
+- view assigned restock orders
+- confirm/reject order
+- update delivery status ke `IN_TRANSIT`
+
+---
 
 ## ERD Summary
 
-Current Prisma schema models:
+Entity utama yang sudah digunakan di Prisma schema:
 
 - `users`
 - `suppliers`
@@ -77,17 +177,22 @@ Current Prisma schema models:
 - `supplier_ratings`
 - `activity_logs`
 
-Important business rules already reflected in the app:
+Aturan bisnis penting:
 
-- stock status is computed from `currentStock` and `minimumStock`
-- pending transactions do not change stock
-- transaction approval updates stock and audit fields
-- outgoing transactions cannot exceed available stock
-- received restock orders create a linked incoming transaction
-- supplier ratings are only available after receipt
+- stock status tidak disimpan di database
+- stock status dihitung dari `currentStock` dan `minimumStock`
+- pending transaction tidak mengubah stock
+- stock hanya berubah saat transaction approved/completed
+- outgoing quantity tidak boleh melebihi stock tersedia
+- restock order `RECEIVED` membuat linked incoming transaction
+- supplier rating hanya boleh dibuat setelah restock diterima
 
-## Current Modules
+---
 
+## Module Routes
+
+- `/`
+- `/login`
 - `/dashboard`
 - `/dashboard/products`
 - `/dashboard/categories`
@@ -97,59 +202,78 @@ Important business rules already reflected in the app:
 - `/dashboard/reports`
 - `/dashboard/activity-logs`
 - `/dashboard/settings`
-- `/login`
 
-## Setup
+---
 
-1. Install dependencies.
+## Demo Accounts
+
+Semua seeded account menggunakan password berikut:
+
+```text
+Password123!
+```
+
+Daftar akun demo:
+
+- `admin@stockwise.demo`
+- `manager@stockwise.demo`
+- `staff@stockwise.demo`
+- `supplier.alpha@stockwise.demo`
+- `supplier.beta@stockwise.demo`
+
+---
+
+## Setup Project
+
+### 1. Install dependency
 
 ```bash
 npm install
 ```
 
-2. Configure environment variables.
+### 2. Buat file `.env`
 
-3. Generate or validate Prisma artifacts as needed.
-
-```bash
-npx prisma validate
-```
-
-4. Run migrations.
-
-```bash
-npx prisma migrate dev --name init_stockwise_schema
-```
-
-5. Seed demo data.
-
-```bash
-npm run seed
-```
-
-6. Start the app.
-
-```bash
-npm run dev
-```
-
-## Environment Variables
-
-Create a local `.env` file with at least:
+Isi minimal:
 
 ```env
 DATABASE_URL="postgresql://..."
 NEXTAUTH_SECRET="replace-with-a-long-random-secret"
 ```
 
-Notes:
+Catatan:
 
-- `DATABASE_URL` is required for Prisma reads, migrations, and seed execution.
-- `NEXTAUTH_SECRET` is recommended for stable local auth sessions and required for production.
+- `DATABASE_URL` wajib untuk Prisma, migration, seed, auth lookup, dan data reads
+- `NEXTAUTH_SECRET` wajib disiapkan untuk session auth yang stabil, terutama di production
+
+### 3. Validasi Prisma
+
+```bash
+npx prisma validate
+```
+
+### 4. Jalankan migration
+
+```bash
+npx prisma migrate dev --name init_stockwise_schema
+```
+
+### 5. Seed data demo
+
+```bash
+npm run seed
+```
+
+### 6. Jalankan aplikasi
+
+```bash
+npm run dev
+```
+
+---
 
 ## Prisma Commands
 
-Useful project commands:
+Command yang sering dipakai:
 
 ```bash
 npx prisma validate
@@ -159,46 +283,40 @@ npx prisma migrate dev --name init_stockwise_schema
 npm run seed
 ```
 
-## Demo Accounts
+---
 
-All seeded demo accounts use the same password:
+## Export & QR Features
 
-```text
-Password123!
-```
+### Export
 
-Accounts:
-
-- `admin@stockwise.demo`
-- `manager@stockwise.demo`
-- `staff@stockwise.demo`
-- `supplier.alpha@stockwise.demo`
-- `supplier.beta@stockwise.demo`
-
-## Export Workflows
-
-- Products can be exported from the products page or reports page.
-- Transactions can be exported from the transactions page or reports page.
-- Export formats:
+- products bisa diexport dari halaman products atau reports
+- transactions bisa diexport dari halaman transactions atau reports
+- format export:
   - CSV
   - XLSX
 
-## QR Labels
+### QR Labels
 
-- Product QR labels are available from the products table.
-- Each QR encodes the saved `qrCode` value when present, otherwise the product `sku`.
-- Labels can be downloaded as PNG files.
+- QR label tersedia di table products
+- QR akan menggunakan `qrCode` jika ada
+- jika `qrCode` kosong, sistem memakai `sku`
+- QR bisa didownload sebagai PNG
+
+---
 
 ## Authentication Notes
 
-- Authentication uses the existing `users` table with credentials sign-in.
-- Dashboard access is protected by middleware.
-- Navigation is filtered by role.
-- Inactive, pending, and rejected accounts are blocked from active dashboard use.
+- auth menggunakan `users` table yang sama dengan domain utama
+- login memakai credentials provider
+- dashboard dilindungi middleware
+- navigation dan route access difilter berdasarkan role
+- user dengan status `PENDING`, `REJECTED`, atau `INACTIVE` tidak bisa memakai dashboard aktif
+
+---
 
 ## Quality Checks
 
-Run these after changes:
+Jalankan ini setelah ada perubahan:
 
 ```bash
 npx prisma validate
@@ -206,29 +324,37 @@ npm run lint
 npm run build
 ```
 
-## Screenshots
+---
 
-Add screenshots here later:
+## Screenshot Placeholder
+
+Tambahkan screenshot di sini nanti:
 
 - landing page
-- login screen
-- analytics dashboard
-- products workspace
+- login page
+- dashboard analytics
+- products page
 - transactions workflow
 - restock workflow
+- reports/export page
 
-## Roadmap
+---
 
-- richer activity log timeline and filters
-- supplier-facing delivery history polish
-- settings preferences and account profile management
-- searchable/filterable data tables
-- report presets and scheduled exports
-- deeper analytics visualizations
+## Roadmap Lanjutan
 
-## Repository Status
+- activity log timeline yang lebih kaya
+- filter dan search table yang lebih lengkap
+- settings preferences yang lebih detail
+- reporting preset
+- scheduled exports
+- dashboard insight yang lebih dalam
+- portfolio screenshots dan deployment guide
 
-Completed phases:
+---
+
+## Status Proyek
+
+Phase yang sudah selesai:
 
 - UI foundation
 - Prisma schema
@@ -243,3 +369,9 @@ Completed phases:
 - inventory analytics dashboard
 - QR labels and export reports
 - authentication and role-based access
+
+---
+
+## Author
+
+StockWise dikembangkan sebagai portfolio-grade warehouse management project menggunakan stack modern React ecosystem, Prisma, dan PostgreSQL.
