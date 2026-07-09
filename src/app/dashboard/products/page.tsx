@@ -30,39 +30,43 @@ import { getStockStatus } from "@/lib/stock";
 
 export const dynamic = "force-dynamic";
 
+const PRODUCT_TABLE_LIMIT = 50;
+
 export default async function ProductsPage() {
-  const currentUser = await getCurrentUser();
-  const products = await prisma.product.findMany({
-    select: {
-      id: true,
-      categoryId: true,
-      name: true,
-      sku: true,
-      description: true,
-      currentStock: true,
-      minimumStock: true,
-      unit: true,
-      rackLocation: true,
-      imageUrl: true,
-      purchasePrice: true,
-      qrCode: true,
-      sellingPrice: true,
-      category: {
-        select: {
-          name: true,
+  const [currentUser, products, categories] = await Promise.all([
+    getCurrentUser(),
+    prisma.product.findMany({
+      take: PRODUCT_TABLE_LIMIT,
+      select: {
+        id: true,
+        categoryId: true,
+        name: true,
+        sku: true,
+        description: true,
+        currentStock: true,
+        minimumStock: true,
+        unit: true,
+        rackLocation: true,
+        imageUrl: true,
+        purchasePrice: true,
+        qrCode: true,
+        sellingPrice: true,
+        category: {
+          select: {
+            name: true,
+          },
         },
       },
-    },
-    orderBy: [{ createdAt: "desc" }, { name: "asc" }],
-  });
-
-  const categories = await prisma.category.findMany({
-    select: {
-      id: true,
-      name: true,
-    },
-    orderBy: [{ name: "asc" }],
-  });
+      orderBy: [{ createdAt: "desc" }, { name: "asc" }],
+    }),
+    prisma.category.findMany({
+      select: {
+        id: true,
+        name: true,
+      },
+      orderBy: [{ name: "asc" }],
+    }),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -112,8 +116,8 @@ export default async function ProductsPage() {
           <CardHeader>
             <CardTitle>Product inventory</CardTitle>
             <CardDescription>
-              {products.length} product{products.length === 1 ? "" : "s"} loaded
-              from the warehouse catalog.
+              Showing the latest {products.length} product
+              {products.length === 1 ? "" : "s"} from the warehouse catalog.
             </CardDescription>
           </CardHeader>
           <CardContent>

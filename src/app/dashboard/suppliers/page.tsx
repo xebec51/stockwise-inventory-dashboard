@@ -28,6 +28,8 @@ import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
+const SUPPLIER_TABLE_LIMIT = 20;
+
 function getStatusBadgeVariant(status: string) {
   switch (status) {
     case "ACTIVE":
@@ -44,84 +46,87 @@ function getStatusBadgeVariant(status: string) {
 
 export default async function SuppliersPage() {
   const currentUser = await getCurrentUser();
-  const suppliers = await prisma.supplier.findMany({
-    select: {
-      id: true,
-      companyName: true,
-      address: true,
-      contactPerson: true,
-      phone: true,
-      supplierCategory: true,
-      bankAccount: true,
-      createdAt: true,
-      user: {
-        select: {
-          name: true,
-          email: true,
-          status: true,
-          avatarUrl: true,
-        },
-      },
-      _count: {
-        select: {
-          restockOrders: true,
-          supplierRatings: true,
-        },
-      },
-      restockOrders: {
+  const [
+    suppliers,
+    supplierCount,
+    activeCount,
+    pendingCount,
+    activeRestockCount,
+    ratingsAggregate,
+  ] =
+    await Promise.all([
+      prisma.supplier.findMany({
+        take: SUPPLIER_TABLE_LIMIT,
         select: {
           id: true,
-          status: true,
-          orderDate: true,
-          poNumber: true,
+          companyName: true,
+          address: true,
+          contactPerson: true,
+          phone: true,
+          supplierCategory: true,
+          bankAccount: true,
+          createdAt: true,
+          user: {
+            select: {
+              name: true,
+              email: true,
+              status: true,
+              avatarUrl: true,
+            },
+          },
+          _count: {
+            select: {
+              restockOrders: true,
+              supplierRatings: true,
+            },
+          },
+          restockOrders: {
+            take: 1,
+            select: {
+              poNumber: true,
+            },
+            orderBy: {
+              orderDate: "desc",
+            },
+          },
+          supplierRatings: {
+            select: {
+              rating: true,
+            },
+          },
         },
-        orderBy: {
-          orderDate: "desc",
+        orderBy: [{ companyName: "asc" }],
+      }),
+      prisma.supplier.count(),
+      prisma.supplier.count({
+        where: {
+          user: {
+            status: "ACTIVE",
+          },
         },
-      },
-      supplierRatings: {
-        select: {
+      }),
+      prisma.supplier.count({
+        where: {
+          user: {
+            status: "PENDING",
+          },
+        },
+      }),
+      prisma.restockOrder.count({
+        where: {
+          status: {
+            in: ["PENDING", "CONFIRMED", "IN_TRANSIT"],
+          },
+        },
+      }),
+      prisma.supplierRating.aggregate({
+        _avg: {
           rating: true,
         },
-      },
-    },
-    orderBy: [{ companyName: "asc" }],
-  });
+      }),
+    ]);
 
-  const summary = suppliers.reduce(
-    (accumulator, supplier) => {
-      if (supplier.user.status === "ACTIVE") {
-        accumulator.active += 1;
-      }
-
-      if (supplier.user.status === "PENDING") {
-        accumulator.pending += 1;
-      }
-
-      const liveRestocks = supplier.restockOrders.filter((order) =>
-        ["PENDING", "CONFIRMED", "IN_TRANSIT"].includes(order.status)
-      ).length;
-
-      accumulator.activeRestocks += liveRestocks;
-
-      supplier.supplierRatings.forEach((rating) => {
-        accumulator.ratingTotal += rating.rating;
-        accumulator.ratingCount += 1;
-      });
-
-      return accumulator;
-    },
-    {
-      active: 0,
-      pending: 0,
-      activeRestocks: 0,
-      ratingTotal: 0,
-      ratingCount: 0,
-    }
-  );
-
-  const averageRating =
-    summary.ratingCount > 0 ? summary.ratingTotal / summary.ratingCount : null;
+  const averageRating = ratingsAggregate._avg.rating;
 
   return (
     <div className="space-y-6">
@@ -145,7 +150,7 @@ export default async function SuppliersPage() {
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-semibold tracking-tight">
-              {suppliers.length}
+              {supplierCount}
             </p>
           </CardContent>
         </Card>
@@ -160,10 +165,10 @@ export default async function SuppliersPage() {
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-semibold tracking-tight">
-              {summary.active}
+              {activeCount}
             </p>
             <p className="text-sm text-muted-foreground">
-              {summary.pending} pending review
+              {pendingCount} pending review
             </p>
           </CardContent>
         </Card>
@@ -178,7 +183,7 @@ export default async function SuppliersPage() {
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-semibold tracking-tight">
-              {summary.activeRestocks}
+              {activeRestockCount}
             </p>
           </CardContent>
         </Card>
@@ -211,7 +216,7 @@ export default async function SuppliersPage() {
           <CardHeader>
             <CardTitle>Supplier directory</CardTitle>
             <CardDescription>
-              {suppliers.length} supplier
+              Showing {suppliers.length} supplier
               {suppliers.length === 1 ? "" : "s"} connected to user accounts and
               future restock coordination.
             </CardDescription>
@@ -231,9 +236,6 @@ export default async function SuppliersPage() {
               </TableHeader>
               <TableBody>
                 {suppliers.map((supplier) => {
-                  const activeRestocks = supplier.restockOrders.filter((order) =>
-                    ["PENDING", "CONFIRMED", "IN_TRANSIT"].includes(order.status)
-                  ).length;
                   const lastOrder = supplier.restockOrders[0];
                   const averageSupplierRating =
                     supplier.supplierRatings.length > 0
@@ -297,7 +299,9 @@ export default async function SuppliersPage() {
                             {supplier._count.restockOrders} total
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            {activeRestocks} open
+                            {supplier._count.restockOrders > 0
+                              ? "Recent order tracked"
+                              : "No orders yet"}
                             {lastOrder ? ` • Last ${lastOrder.poNumber}` : ""}
                           </p>
                         </div>

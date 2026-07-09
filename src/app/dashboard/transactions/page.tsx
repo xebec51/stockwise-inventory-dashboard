@@ -33,6 +33,8 @@ import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
+const TRANSACTION_TABLE_LIMIT = 20;
+
 function getStatusBadgeVariant(status: string) {
   switch (status) {
     case "PENDING":
@@ -53,14 +55,24 @@ function getTypeBadgeVariant(type: string) {
 
 export default async function TransactionsPage() {
   const currentUser = await getCurrentUser();
-  const [transactions, products] = await Promise.all([
+  const transactionWhere =
+    currentUser?.role === "STAFF"
+      ? {
+          createdById: currentUser.id,
+        }
+      : undefined;
+
+  const [
+    transactions,
+    products,
+    pendingCount,
+    approvedOrCompletedCount,
+    rejectedCount,
+    itemLineCount,
+  ] = await Promise.all([
     prisma.transaction.findMany({
-      where:
-        currentUser?.role === "STAFF"
-          ? {
-              createdById: currentUser.id,
-            }
-          : undefined,
+      where: transactionWhere,
+      take: TRANSACTION_TABLE_LIMIT,
       select: {
         id: true,
         transactionNumber: true,
@@ -110,36 +122,37 @@ export default async function TransactionsPage() {
       },
       orderBy: [{ name: "asc" }],
     }),
+    prisma.transaction.count({
+      where: {
+        ...transactionWhere,
+        status: "PENDING",
+      },
+    }),
+    prisma.transaction.count({
+      where: {
+        ...transactionWhere,
+        status: {
+          in: ["APPROVED", "COMPLETED"],
+        },
+      },
+    }),
+    prisma.transaction.count({
+      where: {
+        ...transactionWhere,
+        status: "REJECTED",
+      },
+    }),
+    prisma.transactionItem.count({
+      where:
+        currentUser?.role === "STAFF"
+          ? {
+              transaction: {
+                createdById: currentUser.id,
+              },
+            }
+          : undefined,
+    }),
   ]);
-
-  const summary = transactions.reduce(
-    (accumulator, transaction) => {
-      if (transaction.status === "PENDING") {
-        accumulator.pending += 1;
-      }
-
-      if (
-        transaction.status === "APPROVED" ||
-        transaction.status === "COMPLETED"
-      ) {
-        accumulator.approvedOrCompleted += 1;
-      }
-
-      if (transaction.status === "REJECTED") {
-        accumulator.rejected += 1;
-      }
-
-      accumulator.itemLines += transaction.items.length;
-
-      return accumulator;
-    },
-    {
-      pending: 0,
-      approvedOrCompleted: 0,
-      rejected: 0,
-      itemLines: 0,
-    }
-  );
 
   const canCreateTransactions =
     currentUser?.role === "ADMIN" || currentUser?.role === "STAFF";
@@ -193,7 +206,7 @@ export default async function TransactionsPage() {
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-semibold tracking-tight">
-              {summary.pending}
+              {pendingCount}
             </p>
           </CardContent>
         </Card>
@@ -208,7 +221,7 @@ export default async function TransactionsPage() {
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-semibold tracking-tight">
-              {summary.approvedOrCompleted}
+              {approvedOrCompletedCount}
             </p>
           </CardContent>
         </Card>
@@ -223,7 +236,7 @@ export default async function TransactionsPage() {
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-semibold tracking-tight">
-              {summary.rejected}
+              {rejectedCount}
             </p>
           </CardContent>
         </Card>
@@ -238,7 +251,7 @@ export default async function TransactionsPage() {
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-semibold tracking-tight">
-              {summary.itemLines}
+              {itemLineCount}
             </p>
           </CardContent>
         </Card>
@@ -256,7 +269,7 @@ export default async function TransactionsPage() {
           <CardHeader>
             <CardTitle>Transaction queue</CardTitle>
             <CardDescription>
-              {transactions.length} stock movement
+              Showing the latest {transactions.length} stock movement
               {transactions.length === 1 ? "" : "s"} with item-level audit
               records and approval state.
             </CardDescription>

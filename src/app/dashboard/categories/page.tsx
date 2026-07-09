@@ -25,8 +25,11 @@ import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
+const CATEGORY_TABLE_LIMIT = 50;
+
 export default async function CategoriesPage() {
   const categories = await prisma.category.findMany({
+    take: CATEGORY_TABLE_LIMIT,
     select: {
       id: true,
       name: true,
@@ -64,8 +67,9 @@ export default async function CategoriesPage() {
           <CardHeader>
             <CardTitle>Category catalog</CardTitle>
             <CardDescription>
-              {categories.length} categor{categories.length === 1 ? "y" : "ies"}{" "}
-              currently structure the product catalog.
+              Showing {categories.length} categor
+              {categories.length === 1 ? "y" : "ies"} that currently structure
+              the product catalog.
             </CardDescription>
           </CardHeader>
           <CardContent>

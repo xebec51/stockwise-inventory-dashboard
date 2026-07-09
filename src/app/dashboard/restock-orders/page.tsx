@@ -38,6 +38,8 @@ import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
+const RESTOCK_ORDER_TABLE_LIMIT = 20;
+
 function getStatusBadgeVariant(status: string) {
   switch (status) {
     case "PENDING":
@@ -56,20 +58,31 @@ function getStatusBadgeVariant(status: string) {
 
 export default async function RestockOrdersPage() {
   const currentUser = await getCurrentUser();
-  const [restockOrders, suppliers, products] = await Promise.all([
+  const restockOrderWhere =
+    currentUser?.role === "SUPPLIER"
+      ? {
+          supplier: {
+            userId: currentUser.id,
+          },
+        }
+      : currentUser?.role === "MANAGER"
+        ? {
+            managerId: currentUser.id,
+          }
+        : undefined;
+
+  const [
+    restockOrders,
+    suppliers,
+    products,
+    pendingCount,
+    inTransitCount,
+    receivedCount,
+    rejectedCount,
+  ] = await Promise.all([
     prisma.restockOrder.findMany({
-      where:
-        currentUser?.role === "SUPPLIER"
-          ? {
-              supplier: {
-                userId: currentUser.id,
-              },
-            }
-          : currentUser?.role === "MANAGER"
-            ? {
-                managerId: currentUser.id,
-              }
-            : undefined,
+      where: restockOrderWhere,
+      take: RESTOCK_ORDER_TABLE_LIMIT,
       select: {
         id: true,
         poNumber: true,
@@ -154,35 +167,31 @@ export default async function RestockOrdersPage() {
       },
       orderBy: [{ name: "asc" }],
     }),
+    prisma.restockOrder.count({
+      where: {
+        ...restockOrderWhere,
+        status: "PENDING",
+      },
+    }),
+    prisma.restockOrder.count({
+      where: {
+        ...restockOrderWhere,
+        status: "IN_TRANSIT",
+      },
+    }),
+    prisma.restockOrder.count({
+      where: {
+        ...restockOrderWhere,
+        status: "RECEIVED",
+      },
+    }),
+    prisma.restockOrder.count({
+      where: {
+        ...restockOrderWhere,
+        status: "REJECTED",
+      },
+    }),
   ]);
-
-  const summary = restockOrders.reduce(
-    (accumulator, order) => {
-      if (order.status === "PENDING") {
-        accumulator.pending += 1;
-      }
-
-      if (order.status === "IN_TRANSIT") {
-        accumulator.inTransit += 1;
-      }
-
-      if (order.status === "RECEIVED") {
-        accumulator.received += 1;
-      }
-
-      if (order.status === "REJECTED") {
-        accumulator.rejected += 1;
-      }
-
-      return accumulator;
-    },
-    {
-      pending: 0,
-      inTransit: 0,
-      received: 0,
-      rejected: 0,
-    }
-  );
 
   const canCreateRestockOrders =
     currentUser?.role === "ADMIN" || currentUser?.role === "MANAGER";
@@ -220,7 +229,7 @@ export default async function RestockOrdersPage() {
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-semibold tracking-tight">
-              {summary.pending}
+              {pendingCount}
             </p>
           </CardContent>
         </Card>
@@ -235,7 +244,7 @@ export default async function RestockOrdersPage() {
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-semibold tracking-tight">
-              {summary.inTransit}
+              {inTransitCount}
             </p>
           </CardContent>
         </Card>
@@ -250,7 +259,7 @@ export default async function RestockOrdersPage() {
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-semibold tracking-tight">
-              {summary.received}
+              {receivedCount}
             </p>
           </CardContent>
         </Card>
@@ -265,7 +274,7 @@ export default async function RestockOrdersPage() {
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-semibold tracking-tight">
-              {summary.rejected}
+              {rejectedCount}
             </p>
           </CardContent>
         </Card>
@@ -283,7 +292,7 @@ export default async function RestockOrdersPage() {
           <CardHeader>
             <CardTitle>Restock pipeline</CardTitle>
             <CardDescription>
-              {restockOrders.length} supplier replenishment
+              Showing the latest {restockOrders.length} supplier replenishment
               {restockOrders.length === 1 ? "" : "s"} tracked through delivery and
               warehouse receipt.
             </CardDescription>
