@@ -1,148 +1,173 @@
 # StockWise
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Status-Active%20Development-16A34A?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Modern-Inventory%20Intelligence-0F172A?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Status-Production%20Ready%20Portfolio-16A34A?style=for-the-badge" />
   <img src="https://img.shields.io/badge/License-MIT-2563EB?style=for-the-badge" />
-  <img src="https://img.shields.io/badge/Live%20Demo-Coming%20Soon-F59E0B?style=for-the-badge" />
 </p>
 
 <p align="center">
-  <a href="https://github.com/xebec51">
-    <img src="https://img.shields.io/badge/GitHub-xebec51-181717?style=for-the-badge&logo=github&logoColor=white" />
+  <a href="https://stockwise-inventory-dashboard.vercel.app/">
+    <img src="https://img.shields.io/badge/Live%20Demo-Open%20on%20Vercel-111827?style=for-the-badge&logo=vercel&logoColor=white" />
   </a>
-  <a href="mailto:rinaldi.ruslan51@gmail.com">
-    <img src="https://img.shields.io/badge/Email-rinaldi.ruslan51%40gmail.com-D14836?style=for-the-badge&logo=gmail&logoColor=white" />
-  </a>
-  <a href="https://www.instagram.com/rinaldiruslan/">
-    <img src="https://img.shields.io/badge/Instagram-rinaldiruslan-E4405F?style=for-the-badge&logo=instagram&logoColor=white" />
-  </a>
-  <a href="https://www.tiktok.com/@rinaldiruslan">
-    <img src="https://img.shields.io/badge/TikTok-rinaldiruslan-000000?style=for-the-badge&logo=tiktok&logoColor=white" />
+  <a href="https://github.com/xebec51/stockwise-inventory-dashboard">
+    <img src="https://img.shields.io/badge/Repository-View%20Source-181717?style=for-the-badge&logo=github&logoColor=white" />
   </a>
 </p>
 
 <p align="center">
-  <strong>Modern Inventory Intelligence Dashboard</strong>
+  <strong>Portfolio-grade warehouse management dashboard for inventory control, transaction approval, restock workflows, supplier operations, analytics, QR labels, and export reporting.</strong>
 </p>
 
 <p align="center">
-  SaaS-style warehouse management system for stock control, supplier coordination, transaction approvals,
-  analytics, QR labels, and export reporting.
+  StockWise is designed to feel like a real SaaS operations product, not a simple CRUD demo.
 </p>
 
 <p align="center">
-  <em>Built as a portfolio-grade warehouse operations platform with real workflow logic, role-based access, and production-style dashboard UX.</em>
-</p>
-
-<p align="center">
-  <img src="https://img.shields.io/badge/Next.js-16-000000?style=flat-square&logo=next.js&logoColor=white" />
-  <img src="https://img.shields.io/badge/TypeScript-Strict-3178C6?style=flat-square&logo=typescript&logoColor=white" />
-  <img src="https://img.shields.io/badge/Prisma-ORM-2D3748?style=flat-square&logo=prisma&logoColor=white" />
-  <img src="https://img.shields.io/badge/PostgreSQL-Neon-336791?style=flat-square&logo=postgresql&logoColor=white" />
-  <img src="https://img.shields.io/badge/Tailwind-v4-38BDF8?style=flat-square&logo=tailwindcss&logoColor=white" />
-  <img src="https://img.shields.io/badge/shadcn/ui-Admin%20UI-111111?style=flat-square" />
-  <img src="https://img.shields.io/badge/NextAuth-Credentials-4B5563?style=flat-square" />
+  <a href="https://stockwise-inventory-dashboard.vercel.app/"><strong>Live Demo</strong></a>
+  |
+  <a href="#demo-accounts"><strong>Demo Accounts</strong></a>
+  |
+  <a href="#setup"><strong>Setup Guide</strong></a>
+  |
+  <a href="#features"><strong>Features</strong></a>
 </p>
 
 ---
 
-## Deskripsi Proyek
+## Overview
 
-StockWise adalah dashboard manajemen inventaris modern yang dirancang untuk membantu tim gudang mengelola:
+StockWise is a modern inventory intelligence dashboard built for warehouse teams that need better visibility into stock movement, replenishment, supplier coordination, and operational approvals.
 
-- produk dan kategori gudang
-- stok masuk dan stok keluar
-- approval transaksi
-- workflow restock order
-- supplier dan supplier rating
-- activity logs
-- inventory analytics
-- QR product labels
-- export report ke CSV dan XLSX
+This project focuses on realistic product behavior:
 
-Fokus utama proyek ini bukan sekadar CRUD, tetapi membangun pengalaman aplikasi admin yang terasa seperti produk SaaS nyata, dengan struktur domain yang rapi, workflow operasional yang jelas, dan UI yang siap dipresentasikan sebagai portfolio project.
+- role-aware access for `ADMIN`, `MANAGER`, `STAFF`, and `SUPPLIER`
+- stock movement approval workflows
+- restock order lifecycle handling
+- computed stock status instead of stored stock labels
+- exportable operational data
+- modern admin UI with a strong portfolio presentation
 
 ---
 
-## Key Highlights
+## Live Demo
 
-- End-to-end warehouse workflow dari products sampai restock receiving
-- Prisma + PostgreSQL schema yang mengikuti ERD operasional nyata
-- Role-based authentication untuk `ADMIN`, `MANAGER`, `STAFF`, dan `SUPPLIER`
-- Pending transaction approval yang benar-benar mengubah stock hanya saat disetujui
-- Restock order yang otomatis membuat linked incoming transaction saat status `RECEIVED`
-- Dashboard analytics berbasis query database nyata
-- QR code label generation dan export CSV/XLSX
-- Responsive admin dashboard dengan Next.js App Router + shadcn/ui
+- Deployment: `https://stockwise-inventory-dashboard.vercel.app/`
+- Platform: Vercel
+- Database: Neon PostgreSQL
 
 ---
 
-## Fitur Utama
+## Highlights
 
-### 1. Product & Category Management
+- End-to-end warehouse domain modeling with Prisma and PostgreSQL
+- Responsive SaaS-style dashboard built with Next.js App Router and shadcn/ui
+- Credentials authentication with role-based route protection
+- Incoming and outgoing transaction workflow with approval gates
+- Restock order workflow with supplier confirmation and warehouse receiving
+- Real analytics cards and charts powered by database queries
+- QR code product labels and CSV/XLSX export support
 
-- create, edit, delete category
-- create, edit, delete product
-- validasi Zod
+---
+
+## Features
+
+### Product & Category Management
+
+- create, edit, and delete categories
+- create, edit, and delete products
+- Zod validation for form input
 - computed stock status:
   - `OUT_OF_STOCK`
   - `LOW_STOCK`
   - `IN_STOCK`
 
-### 2. Supplier Management
+### Supplier Management
 
-- read supplier data dari database
-- create, edit, delete supplier profile
-- relasi supplier dengan user account
-- ringkasan restock dan rating supplier
+- supplier directory from the database
+- create, edit, and delete supplier profiles
+- linked supplier user accounts
+- supplier restock summary and rating context
 
-### 3. Transaction Workflow
+### Transaction Workflow
 
-- create pending `INCOMING` dan `OUTGOING` transaction
-- multi-item transaction
-- approval dan rejection flow
-- `stockBefore` dan `stockAfter` tersimpan di `transaction_items`
-- outgoing transaction tidak boleh melebihi stock tersedia
+- create pending `INCOMING` and `OUTGOING` transactions
+- multi-item transaction support
+- approve or reject transaction flow
+- stock audit fields with `stockBefore` and `stockAfter`
+- outgoing quantity validation against current stock
 
-### 4. Restock Workflow
+### Restock Workflow
 
-- manager membuat restock order
-- supplier bisa confirm atau reject
-- supplier bisa mark `IN_TRANSIT`
-- manager bisa mark `RECEIVED`
-- saat `RECEIVED`, sistem membuat linked incoming transaction
-- stock produk otomatis diperbarui
-- supplier rating tersedia setelah order diterima
+- manager creates restock orders
+- supplier confirms or rejects requests
+- supplier marks shipments `IN_TRANSIT`
+- manager marks orders `RECEIVED`
+- received restocks create linked incoming transactions
+- stock updates are applied through transaction items
+- supplier rating becomes available after receipt
 
-### 5. Analytics Dashboard
+### Analytics & Reporting
 
 - total products
 - total inventory value
-- low stock count
-- out of stock count
+- low stock and out-of-stock signals
 - pending transaction count
 - active restock order count
-- recent transactions
-- low stock products
-- charts dengan Recharts
+- recent transaction feed
+- inventory analytics charts
+- CSV/XLSX export for products and transactions
 
-### 6. QR & Reporting
+### QR Labels & Access Control
 
-- generate QR code untuk product identifier
-- download QR sebagai PNG
-- export products ke CSV/XLSX
-- export transactions ke CSV/XLSX
+- QR code generation per product
+- QR fallback using SKU when custom code is empty
+- credentials login with route protection
+- role-aware navigation and dashboard access
 
-### 7. Authentication & Role-Based Access
+---
 
-- credential login dengan data user dari database
-- middleware protection untuk semua route dashboard
-- role-aware navigation
-- pembatasan akses berdasarkan role
+## Product Roles
+
+### ADMIN
+
+- full dashboard access
+- manage products, categories, and suppliers
+- oversee workflows and reporting
+
+### MANAGER
+
+- monitor inventory
+- approve or reject transactions
+- create and receive restock orders
+- rate suppliers
+
+### STAFF
+
+- create stock transactions
+- access product and transaction workspace
+
+### SUPPLIER
+
+- review assigned restock orders
+- confirm, reject, and update delivery status
 
 ---
 
 ## Tech Stack
+
+<p align="left">
+  <img src="https://img.shields.io/badge/Next.js-16-000000?style=flat-square&logo=next.js&logoColor=white" />
+  <img src="https://img.shields.io/badge/TypeScript-Strict-3178C6?style=flat-square&logo=typescript&logoColor=white" />
+  <img src="https://img.shields.io/badge/Tailwind-v4-38BDF8?style=flat-square&logo=tailwindcss&logoColor=white" />
+  <img src="https://img.shields.io/badge/shadcn%2Fui-Component%20System-111111?style=flat-square" />
+  <img src="https://img.shields.io/badge/Prisma-ORM-2D3748?style=flat-square&logo=prisma&logoColor=white" />
+  <img src="https://img.shields.io/badge/PostgreSQL-Neon-336791?style=flat-square&logo=postgresql&logoColor=white" />
+  <img src="https://img.shields.io/badge/NextAuth-Credentials-4B5563?style=flat-square" />
+  <img src="https://img.shields.io/badge/Zod-Validation-3B82F6?style=flat-square" />
+  <img src="https://img.shields.io/badge/Recharts-Analytics-E11D48?style=flat-square" />
+  <img src="https://img.shields.io/badge/XLSX-Export-15803D?style=flat-square" />
+</p>
 
 - Next.js 16
 - TypeScript
@@ -160,40 +185,9 @@ Fokus utama proyek ini bukan sekadar CRUD, tetapi membangun pengalaman aplikasi 
 
 ---
 
-## User Roles
+## Core Domain
 
-### ADMIN
-
-- full dashboard access
-- manage products, categories, suppliers
-- approve workflow access
-- reporting and monitoring access
-
-### MANAGER
-
-- monitor stock dan inventory
-- approve/reject transactions
-- create restock orders
-- receive restock deliveries
-- rate suppliers
-
-### STAFF
-
-- create stock transactions
-- view products
-- view own transaction workspace
-
-### SUPPLIER
-
-- view assigned restock orders
-- confirm/reject order
-- update delivery status ke `IN_TRANSIT`
-
----
-
-## ERD Summary
-
-Entity utama yang sudah digunakan di Prisma schema:
+Main entities used in the current Prisma schema:
 
 - `users`
 - `suppliers`
@@ -206,19 +200,19 @@ Entity utama yang sudah digunakan di Prisma schema:
 - `supplier_ratings`
 - `activity_logs`
 
-Aturan bisnis penting:
+Important business rules:
 
-- stock status tidak disimpan di database
-- stock status dihitung dari `currentStock` dan `minimumStock`
-- pending transaction tidak mengubah stock
-- stock hanya berubah saat transaction approved/completed
-- outgoing quantity tidak boleh melebihi stock tersedia
-- restock order `RECEIVED` membuat linked incoming transaction
-- supplier rating hanya boleh dibuat setelah restock diterima
+- stock status is never stored in the database
+- stock status is computed from `currentStock` and `minimumStock`
+- pending transactions do not change stock
+- stock changes only happen after approval or completion
+- outgoing quantity cannot exceed available stock
+- a received restock creates a linked incoming transaction
+- supplier ratings are only valid after restock receipt
 
 ---
 
-## Module Routes
+## Routes
 
 - `/`
 - `/login`
@@ -236,13 +230,13 @@ Aturan bisnis penting:
 
 ## Demo Accounts
 
-Semua seeded account menggunakan password berikut:
+All seeded demo accounts use:
 
 ```text
 Password123!
 ```
 
-Daftar akun demo:
+Available accounts:
 
 - `admin@stockwise.demo`
 - `manager@stockwise.demo`
@@ -252,47 +246,47 @@ Daftar akun demo:
 
 ---
 
-## Setup Project
+## Setup
 
-### 1. Install dependency
+### 1. Install dependencies
 
 ```bash
 npm install
 ```
 
-### 2. Buat file `.env`
+### 2. Configure environment variables
 
-Isi minimal:
+Create `.env` with at least:
 
 ```env
 DATABASE_URL="postgresql://..."
 NEXTAUTH_SECRET="replace-with-a-long-random-secret"
 ```
 
-Catatan:
+Notes:
 
-- `DATABASE_URL` wajib untuk Prisma, migration, seed, auth lookup, dan data reads
-- `NEXTAUTH_SECRET` wajib disiapkan untuk session auth yang stabil, terutama di production
+- `DATABASE_URL` is required for Prisma, auth lookup, seeding, and dashboard data
+- `NEXTAUTH_SECRET` is required for stable NextAuth sessions, especially in production
 
-### 3. Validasi Prisma
+### 3. Validate Prisma
 
 ```bash
 npx prisma validate
 ```
 
-### 4. Jalankan migration
+### 4. Run migration
 
 ```bash
 npx prisma migrate dev --name init_stockwise_schema
 ```
 
-### 5. Seed data demo
+### 5. Seed demo data
 
 ```bash
 npm run seed
 ```
 
-### 6. Jalankan aplikasi
+### 6. Start development server
 
 ```bash
 npm run dev
@@ -300,9 +294,7 @@ npm run dev
 
 ---
 
-## Prisma Commands
-
-Command yang sering dipakai:
+## Useful Commands
 
 ```bash
 npx prisma validate
@@ -310,42 +302,44 @@ npx prisma generate
 npx prisma migrate status
 npx prisma migrate dev --name init_stockwise_schema
 npm run seed
+npm run lint
+npm run build
 ```
 
 ---
 
-## Export & QR Features
+## Export & QR Notes
 
 ### Export
 
-- products bisa diexport dari halaman products atau reports
-- transactions bisa diexport dari halaman transactions atau reports
-- format export:
+- products can be exported from Products and Reports
+- transactions can be exported from Transactions and Reports
+- supported formats:
   - CSV
   - XLSX
 
 ### QR Labels
 
-- QR label tersedia di table products
-- QR akan menggunakan `qrCode` jika ada
-- jika `qrCode` kosong, sistem memakai `sku`
-- QR bisa didownload sebagai PNG
+- QR labels are available from the products table
+- the app uses `qrCode` when present
+- if `qrCode` is empty, it falls back to `sku`
+- QR can be downloaded as PNG
 
 ---
 
 ## Authentication Notes
 
-- auth menggunakan `users` table yang sama dengan domain utama
-- login memakai credentials provider
-- dashboard dilindungi middleware
-- navigation dan route access difilter berdasarkan role
-- user dengan status `PENDING`, `REJECTED`, atau `INACTIVE` tidak bisa memakai dashboard aktif
+- authentication uses the same `users` table as the main domain
+- login uses NextAuth Credentials
+- middleware protects dashboard routes
+- navigation and route access are filtered by role
+- users with `PENDING`, `REJECTED`, or `INACTIVE` status are blocked from active dashboard use
 
 ---
 
 ## Quality Checks
 
-Jalankan ini setelah ada perubahan:
+Run these after changes:
 
 ```bash
 npx prisma validate
@@ -355,35 +349,23 @@ npm run build
 
 ---
 
-## Screenshot Placeholder
+## Screenshot Checklist
 
-Tambahkan screenshot di sini nanti:
+You can add screenshots for:
 
 - landing page
 - login page
-- dashboard analytics
-- products page
-- transactions workflow
+- analytics dashboard
+- products management
+- transaction workflow
 - restock workflow
-- reports/export page
+- reporting and export
 
 ---
 
-## Roadmap Lanjutan
+## Project Status
 
-- activity log timeline yang lebih kaya
-- filter dan search table yang lebih lengkap
-- settings preferences yang lebih detail
-- reporting preset
-- scheduled exports
-- dashboard insight yang lebih dalam
-- portfolio screenshots dan deployment guide
-
----
-
-## Status Proyek
-
-Phase yang sudah selesai:
+Completed milestones:
 
 - UI foundation
 - Prisma schema
@@ -401,27 +383,37 @@ Phase yang sudah selesai:
 
 ---
 
+## Roadmap
+
+- richer activity log timeline
+- more advanced search and filtering
+- deeper settings and preferences
+- reporting presets
+- scheduled exports
+- more advanced operational insights
+- polished screenshot gallery for portfolio presentation
+
+---
+
 ## Author
 
 **Muh. Rinaldi Ruslan**
 
+- GitHub: [xebec51](https://github.com/xebec51)
 - Email: [rinaldi.ruslan51@gmail.com](mailto:rinaldi.ruslan51@gmail.com)
-- GitHub: https://github.com/xebec51
-- Instagram: https://www.instagram.com/rinaldiruslan/
-- TikTok: https://www.tiktok.com/@rinaldiruslan
-
-StockWise dikembangkan sebagai portfolio-grade warehouse management project menggunakan stack modern React ecosystem, Prisma, dan PostgreSQL.
+- Instagram: [@rinaldiruslan](https://www.instagram.com/rinaldiruslan/)
+- TikTok: [@rinaldiruslan](https://www.tiktok.com/@rinaldiruslan)
 
 ---
 
-## Connect with Me
+## Connect With Me
 
-<p align="center">
+<p align="left">
   <a href="https://github.com/xebec51">
     <img src="https://img.shields.io/badge/GitHub-xebec51-181717?style=for-the-badge&logo=github&logoColor=white" />
   </a>
   <a href="mailto:rinaldi.ruslan51@gmail.com">
-    <img src="https://img.shields.io/badge/Email-Contact%20Me-D14836?style=for-the-badge&logo=gmail&logoColor=white" />
+    <img src="https://img.shields.io/badge/Email-rinaldi.ruslan51%40gmail.com-D14836?style=for-the-badge&logo=gmail&logoColor=white" />
   </a>
   <a href="https://www.instagram.com/rinaldiruslan/">
     <img src="https://img.shields.io/badge/Instagram-rinaldiruslan-E4405F?style=for-the-badge&logo=instagram&logoColor=white" />
@@ -434,10 +426,10 @@ StockWise dikembangkan sebagai portfolio-grade warehouse management project meng
 ---
 
 <p align="center">
-  <strong>StockWise</strong><br/>
-  Crafted by <strong>Muh. Rinaldi Ruslan</strong> as a modern warehouse intelligence portfolio project.
+  <strong>StockWise</strong><br />
+  Built by <strong>Muh. Rinaldi Ruslan</strong> as a modern warehouse intelligence portfolio project.
 </p>
 
 <p align="center">
-  Built with Next.js, Prisma, PostgreSQL, and a product-first mindset for real operational workflows.
+  Crafted with Next.js, Prisma, PostgreSQL, and a product-first mindset for realistic operational workflows.
 </p>
