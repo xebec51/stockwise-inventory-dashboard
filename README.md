@@ -269,6 +269,7 @@ Required variables:
 DATABASE_URL=
 NEXTAUTH_URL=http://localhost:3000
 NEXTAUTH_SECRET=
+# AUTH_SECRET= can be used instead of NEXTAUTH_SECRET
 ```
 
 Production example:
@@ -324,7 +325,7 @@ npm run build
 
 ### Vercel
 
-- set `DATABASE_URL`, `NEXTAUTH_URL`, and `NEXTAUTH_SECRET`
+- set `DATABASE_URL`, `NEXTAUTH_URL`, and either `NEXTAUTH_SECRET` or `AUTH_SECRET`
 - set `NEXTAUTH_URL` to the deployed domain
 - `postinstall`, `prebuild`, and `build` scripts generate the Prisma Client before Next.js compiles
 - generated Prisma Client files are not committed
@@ -345,6 +346,18 @@ StockWise supports English and Bahasa Indonesia through an internal dictionary-b
 - selected language persists across refreshes
 - navigation, status labels, dashboard copy, forms, empty states, and reports are translated where practical
 - date and currency formatting respect the selected locale
+
+---
+
+## Security and Concurrency Notes
+
+- dashboard access is enforced by middleware and repeated at page level before sensitive Prisma queries run
+- Server Actions enforce role and resource ownership checks independently of navigation visibility
+- transaction approval and restock receipt use serializable transactions, deterministic product row locks, conditional stock updates, and conservative retries for Prisma `P2034` conflicts
+- outgoing stock writes retain an atomic `currentStock >= quantity` guard, while restock receipt locks the order before checking its status and linked transaction
+- pending transactions do not change product stock; audit values are finalized only during approval or receipt
+
+Nonnegative stock is enforced by validation and guarded writes. The current database schema does not include a PostgreSQL `CHECK` constraint for stock or quantity values.
 
 ---
 
