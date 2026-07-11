@@ -62,6 +62,30 @@ export const en = {
       qrAndReports: "QR labels and reports",
     },
   },
+  footer: {
+    description:
+      "A modern inventory intelligence cockpit for stock control, movement approvals, supplier coordination, restock workflows, QR labels, and exportable reports.",
+    product: "Product",
+    developer: "Developer",
+    rights: "© {year} StockWise. Built by Muh. Rinaldi Ruslan.",
+    links: {
+      home: "Home",
+      login: "Login",
+      dashboard: "Dashboard",
+      products: "Products",
+      reports: "Reports",
+      settings: "Settings",
+    },
+  },
+  developer: {
+    role: "Full-Stack Developer",
+    github: "View GitHub",
+    linkedin: "View LinkedIn",
+    email: "Contact Developer",
+    portfolioProject: "Portfolio Project",
+    portfolioDescription:
+      "This project is part of a full-stack portfolio focused on production-grade SaaS applications.",
+  },
   login: {
     badge: "Demo authentication",
     title: "Sign in to StockWise",

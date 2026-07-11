@@ -61,6 +61,12 @@ Core product focus:
 
 ---
 
+## Portfolio Context
+
+This project is part of a full-stack portfolio focused on building production-ready SaaS applications with modern web technologies, role-based access control, database-backed workflows, analytics, and polished UI/UX.
+
+---
+
 ## Highlights
 
 - Role-aware dashboard access for ADMIN, MANAGER, STAFF, and SUPPLIER
@@ -367,6 +373,7 @@ StockWise supports English and Bahasa Indonesia through an internal dictionary-b
 **Muh. Rinaldi Ruslan**
 
 - GitHub: [xebec51](https://github.com/xebec51)
+- LinkedIn: [rinaldiruslan](https://www.linkedin.com/in/rinaldiruslan)
 - Email: [rinaldi.ruslan51@gmail.com](mailto:rinaldi.ruslan51@gmail.com)
 - Instagram: [@rinaldiruslan](https://www.instagram.com/rinaldiruslan/)
 - TikTok: [@rinaldiruslan](https://www.tiktok.com/@rinaldiruslan)
@@ -381,6 +388,9 @@ StockWise supports English and Bahasa Indonesia through an internal dictionary-b
   </a>
   <a href="mailto:rinaldi.ruslan51@gmail.com">
     <img src="https://img.shields.io/badge/Email-rinaldi.ruslan51%40gmail.com-D14836?style=for-the-badge&logo=gmail&logoColor=white" />
+  </a>
+  <a href="https://www.linkedin.com/in/rinaldiruslan">
+    <img src="https://img.shields.io/badge/LinkedIn-rinaldiruslan-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" />
   </a>
   <a href="https://www.instagram.com/rinaldiruslan/">
     <img src="https://img.shields.io/badge/Instagram-rinaldiruslan-E4405F?style=for-the-badge&logo=instagram&logoColor=white" />

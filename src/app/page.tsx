@@ -10,6 +10,7 @@ import {
   Warehouse,
 } from "lucide-react";
 
+import { AppFooter } from "@/components/app-footer";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -185,6 +186,7 @@ export default async function Home() {
           </div>
         </div>
       </section>
+      <AppFooter />
     </main>
   );
 }

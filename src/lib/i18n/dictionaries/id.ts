@@ -62,6 +62,30 @@ export const id = {
       qrAndReports: "Label QR dan laporan",
     },
   },
+  footer: {
+    description:
+      "Cockpit intelijen inventaris modern untuk kontrol stok, persetujuan pergerakan, koordinasi pemasok, alur restok, label QR, dan laporan ekspor.",
+    product: "Produk",
+    developer: "Developer",
+    rights: "© {year} StockWise. Dibangun oleh Muh. Rinaldi Ruslan.",
+    links: {
+      home: "Beranda",
+      login: "Masuk",
+      dashboard: "Dasbor",
+      products: "Produk",
+      reports: "Laporan",
+      settings: "Pengaturan",
+    },
+  },
+  developer: {
+    role: "Full-Stack Developer",
+    github: "Lihat GitHub",
+    linkedin: "Lihat LinkedIn",
+    email: "Hubungi Developer",
+    portfolioProject: "Proyek Portofolio",
+    portfolioDescription:
+      "Proyek ini merupakan bagian dari portofolio full-stack yang berfokus pada aplikasi SaaS siap produksi.",
+  },
   login: {
     badge: "Autentikasi demo",
     title: "Masuk ke StockWise",
