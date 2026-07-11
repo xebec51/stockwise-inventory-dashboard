@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 type NavItemProps = {
   item: DashboardNavItem;
   collapsed?: boolean;
+  inverse?: boolean;
   onNavigate?: () => void;
 };
 
@@ -28,6 +29,7 @@ function isActivePath(pathname: string, href: string) {
 export function NavItem({
   item,
   collapsed = false,
+  inverse = false,
   onNavigate,
 }: NavItemProps) {
   const pathname = usePathname();
@@ -44,8 +46,12 @@ export function NavItem({
         "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
         collapsed ? "justify-center px-2.5" : "justify-start",
         active
-          ? "bg-white/10 text-white"
-          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+          ? inverse
+            ? "bg-sidebar-primary text-sidebar-primary-foreground"
+            : "bg-primary/10 text-primary"
+          : inverse
+            ? "text-sidebar-foreground/68 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+            : "text-muted-foreground hover:bg-muted hover:text-foreground"
       )}
       aria-current={active ? "page" : undefined}
     >

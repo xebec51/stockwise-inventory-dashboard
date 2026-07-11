@@ -16,11 +16,11 @@ type StockStatusBadgeProps = {
 
 const statusStyles: Record<StockStatus, string> = {
   IN_STOCK:
-    "border-emerald-200 bg-emerald-50 text-emerald-800 shadow-emerald-950/5 dark:border-emerald-500/25 dark:bg-emerald-500/10 dark:text-emerald-200",
+    "border-success/20 bg-success/10 text-success",
   LOW_STOCK:
-    "border-amber-200 bg-amber-50 text-amber-800 shadow-amber-950/5 dark:border-amber-500/25 dark:bg-amber-500/10 dark:text-amber-200",
+    "border-warning/20 bg-warning/10 text-warning",
   OUT_OF_STOCK:
-    "border-rose-200 bg-rose-50 text-rose-800 shadow-rose-950/5 dark:border-rose-500/25 dark:bg-rose-500/10 dark:text-rose-200",
+    "border-destructive/20 bg-destructive/10 text-destructive",
 };
 
 const statusIcons = {
@@ -36,7 +36,7 @@ export function StockStatusBadge({ status }: StockStatusBadgeProps) {
   return (
     <Badge
       variant="outline"
-      className={cn("gap-1.5 rounded-full px-2.5 shadow-sm", statusStyles[status])}
+      className={cn("gap-1.5 rounded-full px-2.5", statusStyles[status])}
     >
       <Icon className="size-3.5" />
       {translateStockStatus(status, locale)}

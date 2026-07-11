@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import {
-  Boxes,
   Code2,
   ExternalLink,
   Mail,
 } from "lucide-react";
 
+import { StockWiseLogo } from "@/components/brand/stockwise-logo";
 import { useI18n } from "@/lib/i18n/use-i18n";
 
 const productLinks = [
@@ -51,13 +51,11 @@ export function AppFooter() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="border-t border-slate-800 bg-slate-950 text-white">
+    <footer className="border-t border-white/10 bg-brand-graphite text-white">
       <div className="mx-auto grid max-w-7xl gap-10 px-6 py-12 sm:px-8 lg:grid-cols-[1.2fr_0.8fr_1fr] lg:px-10">
         <div className="space-y-5">
           <div className="flex items-center gap-3">
-            <div className="flex size-10 items-center justify-center rounded-lg bg-cyan-300 text-slate-950">
-              <Boxes className="size-5" />
-            </div>
+            <StockWiseLogo showWordmark={false} variant="inverse" />
             <div>
               <p className="text-lg font-semibold tracking-tight">StockWise</p>
               <p className="text-xs text-white/56">{t("landing.tagline")}</p>
@@ -77,7 +75,7 @@ export function AppFooter() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="inline-flex w-fit items-center gap-2 text-white/72 transition hover:text-cyan-100"
+                className="inline-flex w-fit items-center gap-2 text-white/68 transition hover:text-brand-cyan"
               >
                 {t(item.labelKey)}
               </Link>
@@ -88,7 +86,7 @@ export function AppFooter() {
         <div>
           <div>
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-cyan-100/70">
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-brand-cyan">
                 {t("footer.developer")}
               </p>
               <h2 className="mt-2 text-2xl font-semibold">
@@ -114,7 +112,7 @@ export function AppFooter() {
                   target={external ? "_blank" : undefined}
                   rel={external ? "noreferrer" : undefined}
                   aria-label={t(link.labelKey)}
-                  className="inline-flex items-center gap-2 text-xs font-semibold text-white/70 transition hover:text-cyan-100"
+                  className="inline-flex items-center gap-2 text-xs font-semibold text-white/70 transition hover:text-brand-cyan"
                 >
                   <Icon className="size-3.5" />
                   {t(link.labelKey)}
@@ -129,7 +127,7 @@ export function AppFooter() {
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-6 py-5 text-sm text-white/55 sm:px-8 lg:flex-row lg:items-center lg:justify-between lg:px-10">
           <p>{t("footer.rights", { year })}</p>
           <div className="flex flex-wrap items-center gap-2 text-xs">
-            <Code2 className="size-4 text-cyan-100/75" />
+            <Code2 className="size-4 text-brand-cyan" />
             {techStack.join(" · ")}
           </div>
         </div>

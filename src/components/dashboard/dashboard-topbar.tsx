@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronRight } from "lucide-react";
 
+import { StockWiseMark } from "@/components/brand/stockwise-logo";
 import type { DashboardNavItem } from "@/config/dashboard-nav";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DashboardMobileNav } from "@/components/dashboard/dashboard-mobile-nav";
@@ -42,6 +43,7 @@ export function DashboardTopbar({
       <div className="flex min-h-18 items-center justify-between gap-4 px-4 py-3 sm:px-6">
         <div className="flex min-w-0 items-center gap-3">
           <DashboardMobileNav currentUser={currentUser} navItems={navItems} />
+          <StockWiseMark className="hidden size-7 sm:block" />
           <div className="min-w-0">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Link href="/dashboard" className="hover:text-foreground">

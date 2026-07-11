@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Boxes, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 
+import { StockWiseLogo } from "@/components/brand/stockwise-logo";
 import type { DashboardNavItem } from "@/config/dashboard-nav";
 import { Button } from "@/components/ui/button";
 import {
@@ -51,9 +52,7 @@ export function DashboardMobileNav({
       <SheetContent side="left" className="w-[88vw] max-w-sm p-0">
         <SheetHeader className="border-b border-border px-5 py-5 text-left">
           <Link href="/" className="flex items-center gap-3" onClick={() => setOpen(false)}>
-            <div className="flex size-10 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
-              <Boxes className="size-5" />
-            </div>
+            <StockWiseLogo showWordmark={false} />
             <div>
               <SheetTitle>StockWise</SheetTitle>
               <SheetDescription>{t("landing.badge")}</SheetDescription>

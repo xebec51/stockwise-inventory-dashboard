@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { ArrowRight, Boxes, ClipboardCheck, Factory, Warehouse } from "lucide-react";
+import { ArrowRight, ClipboardCheck, Factory, Warehouse } from "lucide-react";
 
 import { AppFooter } from "@/components/app-footer";
+import { StockWiseLogo } from "@/components/brand/stockwise-logo";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -37,16 +38,14 @@ export default async function Home() {
   const { t } = await getServerTranslator();
 
   return (
-    <main className="bg-slate-50">
-      <header className="border-b border-slate-200 bg-white">
+    <main className="bg-background">
+      <header className="border-b border-border bg-card">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 sm:px-8">
           <div className="flex items-center gap-3">
-            <div className="flex size-9 items-center justify-center rounded-lg bg-slate-950 text-white">
-              <Boxes className="size-4" />
-            </div>
+            <StockWiseLogo showWordmark />
             <div>
-              <p className="font-semibold tracking-tight">StockWise</p>
-              <p className="text-xs text-slate-500">{t("landing.tagline")}</p>
+              <p className="sr-only">StockWise</p>
+              <p className="hidden text-xs text-muted-foreground sm:block">{t("landing.tagline")}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -60,11 +59,11 @@ export default async function Home() {
 
       <section className="mx-auto grid max-w-7xl items-center gap-12 px-5 py-16 sm:px-8 lg:grid-cols-[1.05fr_0.75fr] lg:py-24">
         <div className="max-w-3xl space-y-7">
-          <p className="text-sm font-medium text-cyan-700">{t("landing.eyebrow")}</p>
-          <h1 className="text-5xl font-semibold leading-[1.04] tracking-tight text-slate-950 sm:text-6xl">
+          <p className="text-sm font-medium text-primary">{t("landing.eyebrow")}</p>
+          <h1 className="text-5xl font-semibold leading-[1.04] tracking-tight text-foreground sm:text-6xl">
             {t("landing.title")}
           </h1>
-          <p className="max-w-2xl text-lg leading-8 text-slate-600">
+          <p className="max-w-2xl text-lg leading-8 text-muted-foreground">
             {t("landing.description")}
           </p>
           <div className="flex flex-col gap-3 sm:flex-row">
@@ -78,15 +77,15 @@ export default async function Home() {
           </div>
         </div>
 
-        <Card className="border-slate-800 bg-slate-950 text-white shadow-none">
+        <Card className="border-white/10 bg-brand-graphite text-white shadow-none">
           <CardContent className="p-7">
-            <p className="text-sm text-cyan-300">{t("landing.platformScope")}</p>
+            <p className="text-sm text-brand-cyan">{t("landing.platformScope")}</p>
             <h2 className="mt-2 text-2xl font-semibold">{t("landing.foundations")}</h2>
             <div className="mt-6 divide-y divide-white/10 border-y border-white/10">
               {modules.map((module) => (
                 <div key={module} className="flex items-center justify-between gap-4 py-4 text-sm">
                   <span>{t(module)}</span>
-                  <span className="text-slate-500">01</span>
+                  <span className="text-white/35">01</span>
                 </div>
               ))}
             </div>
@@ -94,15 +93,15 @@ export default async function Home() {
         </Card>
       </section>
 
-      <section className="border-y border-slate-200 bg-white">
+      <section className="border-y border-border bg-card">
         <div className="mx-auto grid max-w-7xl gap-8 px-5 py-14 sm:px-8 lg:grid-cols-3">
           {highlights.map((item) => {
             const Icon = item.icon;
             return (
-              <div key={item.titleKey} className="border-l-2 border-slate-200 pl-5">
-                <Icon className="size-5 text-cyan-700" />
-                <h2 className="mt-4 text-lg font-semibold text-slate-950">{t(item.titleKey)}</h2>
-                <p className="mt-2 text-sm leading-6 text-slate-600">{t(item.descriptionKey)}</p>
+              <div key={item.titleKey} className="border-l-2 border-border pl-5">
+                <Icon className="size-5 text-primary" />
+                <h2 className="mt-4 text-lg font-semibold text-foreground">{t(item.titleKey)}</h2>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">{t(item.descriptionKey)}</p>
               </div>
             );
           })}

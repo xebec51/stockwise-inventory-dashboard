@@ -204,6 +204,6 @@ export default async function DashboardPage() {
 }
 
 function Metric({ label, value, warning = false, danger = false }: { label: string; value: string; warning?: boolean; danger?: boolean }) {
-  const tone = danger ? "text-rose-600" : warning ? "text-amber-600" : "text-foreground";
+  const tone = danger ? "text-destructive" : warning ? "text-warning" : "text-foreground";
   return <div><p className="text-sm text-muted-foreground">{label}</p><p className={`mt-2 text-2xl font-semibold ${tone}`}>{value}</p></div>;
 }

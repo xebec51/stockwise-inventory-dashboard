@@ -421,7 +421,7 @@ function SummaryValue({ label, value, warning = false }: { label: string; value:
   return (
     <div>
       <p className="text-sm text-muted-foreground">{label}</p>
-      <p className={warning && value > 0 ? "mt-2 text-2xl font-semibold text-amber-600" : "mt-2 text-2xl font-semibold"}>{value}</p>
+      <p className={warning && value > 0 ? "mt-2 text-2xl font-semibold text-warning" : "mt-2 text-2xl font-semibold"}>{value}</p>
     </div>
   );
 }

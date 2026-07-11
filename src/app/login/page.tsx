@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
-import { Boxes } from "lucide-react";
 
 import { AppFooter } from "@/components/app-footer";
 import { LoginForm } from "@/components/auth/login-form";
+import { StockWiseLogo } from "@/components/brand/stockwise-logo";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getAuthSession } from "@/lib/auth";
@@ -30,31 +30,29 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
   return (
     <>
-      <main className="min-h-screen bg-slate-50 px-4 py-12">
+      <main className="min-h-screen bg-background px-4 py-12">
         <div className="mx-auto max-w-md">
           <div className="mb-8 flex items-start justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="flex size-10 items-center justify-center rounded-lg bg-slate-950 text-white">
-                <Boxes className="size-4" />
-              </div>
+              <StockWiseLogo showWordmark={false} />
               <div>
-                <h1 className="text-2xl font-semibold tracking-tight text-slate-950">{t("login.title")}</h1>
-                <p className="text-sm text-slate-500">{t("login.description")}</p>
+                <h1 className="text-2xl font-semibold tracking-tight text-foreground">{t("login.title")}</h1>
+                <p className="text-sm text-muted-foreground">{t("login.description")}</p>
               </div>
             </div>
             <LanguageSwitcher />
           </div>
 
-          <Card className="border-slate-200 bg-white shadow-none">
+          <Card className="border-border bg-card shadow-none">
             <CardHeader>
               <CardTitle>{t("login.accessTitle")}</CardTitle>
               <CardDescription>{t("login.accessDescription")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-5">
               <LoginForm error={params?.error} />
-              <details className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm">
-                <summary className="cursor-pointer font-medium text-slate-900">{t("login.badge")}</summary>
-                <div className="mt-3 space-y-1 text-slate-600">
+              <details className="rounded-lg border border-border bg-muted/60 p-4 text-sm">
+                <summary className="cursor-pointer font-medium text-foreground">{t("login.badge")}</summary>
+                <div className="mt-3 space-y-1 text-muted-foreground">
                   {demoAccounts.map((account) => <p key={account}>{account}</p>)}
                   <p className="pt-2">{t("login.demoPassword")}: <strong>Password123!</strong></p>
                 </div>

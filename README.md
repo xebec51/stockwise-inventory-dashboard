@@ -39,7 +39,7 @@
 
 StockWise is a full-stack inventory intelligence dashboard built for realistic warehouse operations. It supports product and category management, supplier profiles, transaction approval workflows, restock order coordination, stock-safe updates, analytics, QR labels, export reports, activity logs, authentication, and role-aware access.
 
-The interface has been redesigned around a graphite, cyan, emerald, amber, and risk-red operations identity so the product feels more like a warehouse command center than a generic admin template.
+The interface uses a restrained teal-and-graphite operations identity so the product feels more like a warehouse command center than a generic admin template.
 
 Core product focus:
 
@@ -64,6 +64,10 @@ Core product focus:
 ## Portfolio Context
 
 This project is part of a full-stack portfolio focused on building production-ready SaaS applications with modern web technologies, role-based access control, database-backed workflows, analytics, and polished UI/UX.
+
+## Brand Identity
+
+StockWise uses a restrained teal-and-graphite identity inspired by inventory intelligence, stock control, and warehouse operations. Its custom W mark combines a warehouse shelf motif with a compact inventory-flow monogram for consistent use across public, authentication, dashboard, and footer surfaces.
 
 ---
 
