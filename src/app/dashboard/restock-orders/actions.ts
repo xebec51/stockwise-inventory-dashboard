@@ -626,8 +626,9 @@ export async function receiveRestockOrder(
     }
 
     const managerCanReceive =
-      (sessionUser.role === "ADMIN" || sessionUser.id === restockOrder.manager.id) &&
-      restockOrder.manager.status === "ACTIVE";
+      sessionUser.role === "ADMIN" ||
+      (sessionUser.id === restockOrder.manager.id &&
+        restockOrder.manager.status === "ACTIVE");
 
     if (!managerCanReceive) {
       return {
@@ -754,8 +755,9 @@ export async function createSupplierRating(
     }
 
     const managerCanRate =
-      (sessionUser.role === "ADMIN" || sessionUser.id === restockOrder.manager.id) &&
-      restockOrder.manager.status === "ACTIVE";
+      sessionUser.role === "ADMIN" ||
+      (sessionUser.id === restockOrder.manager.id &&
+        restockOrder.manager.status === "ACTIVE");
 
     if (!managerCanRate) {
       return {

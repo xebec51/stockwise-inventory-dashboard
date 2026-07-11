@@ -59,16 +59,6 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        if (user.status !== "ACTIVE") {
-          return {
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            role: user.role,
-            status: user.status,
-          };
-        }
-
         const passwordMatches = await bcrypt.compare(password, user.password);
 
         if (!passwordMatches) {

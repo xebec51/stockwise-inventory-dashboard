@@ -27,6 +27,8 @@ export function ExportButtons({
   rows,
   sheetName,
 }: ExportButtonsProps) {
+  const hasRows = rows.length > 0;
+
   function handleExportCsv() {
     const sheet = XLSX.utils.json_to_sheet(rows);
     const csv = XLSX.utils.sheet_to_csv(sheet);
@@ -56,11 +58,23 @@ export function ExportButtons({
 
   return (
     <div className="flex flex-wrap gap-2">
-      <Button type="button" variant="outline" size="sm" onClick={handleExportCsv}>
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onClick={handleExportCsv}
+        disabled={!hasRows}
+      >
         <Download className="size-4" />
         Export CSV
       </Button>
-      <Button type="button" variant="outline" size="sm" onClick={handleExportXlsx}>
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onClick={handleExportXlsx}
+        disabled={!hasRows}
+      >
         <FileSpreadsheet className="size-4" />
         Export XLSX
       </Button>
