@@ -36,6 +36,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { type MutationState, initialMutationState } from "@/lib/actions";
 import type { AuthSessionUser } from "@/lib/auth";
+import { useI18n } from "@/lib/i18n/use-i18n";
 
 type SupplierOption = {
   id: string;
@@ -57,7 +58,7 @@ type RestockItemDraft = {
   estimatedPrice: string;
 };
 
-type RestockOrderFormDialogProps = {
+type RestockOrderFormSheetProps = {
   currentUser: AuthSessionUser;
   products: ProductOption[];
   suppliers: SupplierOption[];
@@ -101,6 +102,7 @@ function RestockItemRow({
   canRemove: boolean;
   setItems: Dispatch<SetStateAction<RestockItemDraft[]>>;
 }) {
+  const { t } = useI18n();
   const selectId = useId();
   const quantityId = useId();
   const priceId = useId();
@@ -108,7 +110,7 @@ function RestockItemRow({
   return (
     <div className="grid gap-3 rounded-2xl border border-border/70 bg-muted/20 p-4 md:grid-cols-[minmax(0,1fr)_9rem_10rem_auto]">
       <div className="space-y-2">
-        <Label htmlFor={selectId}>Product {index + 1}</Label>
+        <Label htmlFor={selectId}>{t("dialogs.workflow.productNumber", { number: index + 1 })}</Label>
         <Select
           value={item.productId}
           onValueChange={(value) =>
@@ -125,7 +127,7 @@ function RestockItemRow({
           }
         >
           <SelectTrigger id={selectId} className="w-full">
-            <SelectValue placeholder="Select product" />
+            <SelectValue placeholder={t("dialogs.workflow.selectProduct")} />
           </SelectTrigger>
           <SelectContent>
             {products.map((product) => (
@@ -138,7 +140,7 @@ function RestockItemRow({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor={quantityId}>Quantity</Label>
+        <Label htmlFor={quantityId}>{t("dialogs.workflow.quantity")}</Label>
         <Input
           id={quantityId}
           type="number"
@@ -161,7 +163,7 @@ function RestockItemRow({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor={priceId}>Est. Price</Label>
+        <Label htmlFor={priceId}>{t("dialogs.workflow.estimatedPrice")}</Label>
         <Input
           id={priceId}
           type="number"
@@ -196,18 +198,19 @@ function RestockItemRow({
           }
         >
           <Minus className="size-4" />
-          Remove
+          {t("dialogs.workflow.remove")}
         </Button>
       </div>
     </div>
   );
 }
 
-export function RestockOrderFormDialog({
+export function RestockOrderFormSheet({
   currentUser,
   products,
   suppliers,
-}: RestockOrderFormDialogProps) {
+}: RestockOrderFormSheetProps) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [supplierId, setSupplierId] = useState(suppliers[0]?.id ?? "");
   const [items, setItems] = useState<RestockItemDraft[]>([createEmptyLine()]);
@@ -256,17 +259,16 @@ export function RestockOrderFormDialog({
     <Sheet open={open} onOpenChange={handleOpenChange}>
       <SheetTrigger render={<Button size="sm" />}>
         <Plus className="size-4" />
-        Create Restock Order
+        {t("dialogs.workflow.createRestockOrder")}
       </SheetTrigger>
       <SheetContent
         className="w-full overflow-y-auto sm:max-w-4xl"
         side="right"
       >
         <SheetHeader className="border-b border-border/70">
-          <SheetTitle>Create restock order</SheetTitle>
+          <SheetTitle>{t("dialogs.workflow.createRestockOrder")}</SheetTitle>
           <SheetDescription>
-            Create a pending purchase order for a supplier with multiple product
-            lines and estimated pricing.
+            {t("dialogs.workflow.createRestockDescription")}
           </SheetDescription>
         </SheetHeader>
 
@@ -277,14 +279,14 @@ export function RestockOrderFormDialog({
 
           {state.message && !state.success ? (
             <Alert variant="destructive">
-              <AlertTitle>Unable to create restock order</AlertTitle>
+              <AlertTitle>{t("dialogs.workflow.unableCreateRestock")}</AlertTitle>
               <AlertDescription>{state.message}</AlertDescription>
             </Alert>
           ) : null}
 
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="restock-manager">Manager</Label>
+              <Label htmlFor="restock-manager">{t("dialogs.workflow.manager")}</Label>
               <Input
                 id="restock-manager"
                 value={`${currentUser.name} (${currentUser.role})`}
@@ -294,7 +296,7 @@ export function RestockOrderFormDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="restock-supplier">Supplier</Label>
+              <Label htmlFor="restock-supplier">{t("dialogs.workflow.supplier")}</Label>
               <Select
                 value={supplierId}
                 onValueChange={(value) => setSupplierId(value ?? "")}
@@ -304,7 +306,7 @@ export function RestockOrderFormDialog({
                   className="w-full"
                   aria-invalid={Boolean(state.errors?.supplierId?.length)}
                 >
-                  <SelectValue placeholder="Select supplier" />
+                  <SelectValue placeholder={t("dialogs.workflow.selectSupplier")} />
                 </SelectTrigger>
                 <SelectContent>
                   {suppliers.map((supplier) => (
@@ -318,7 +320,7 @@ export function RestockOrderFormDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="restock-po-number">PO Number</Label>
+              <Label htmlFor="restock-po-number">{t("dialogs.workflow.poNumber")}</Label>
               <Input
                 id="restock-po-number"
                 name="poNumber"
@@ -329,7 +331,7 @@ export function RestockOrderFormDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="restock-order-date">Order Date</Label>
+              <Label htmlFor="restock-order-date">{t("dialogs.workflow.orderDate")}</Label>
               <Input
                 id="restock-order-date"
                 name="orderDate"
@@ -341,7 +343,7 @@ export function RestockOrderFormDialog({
             </div>
 
             <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="restock-expected-date">Expected Delivery Date</Label>
+              <Label htmlFor="restock-expected-date">{t("dialogs.workflow.expectedDeliveryDate")}</Label>
               <Input
                 id="restock-expected-date"
                 name="expectedDeliveryDate"
@@ -352,7 +354,7 @@ export function RestockOrderFormDialog({
             </div>
 
             <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="restock-notes">Notes</Label>
+              <Label htmlFor="restock-notes">{t("dialogs.workflow.notes")}</Label>
               <Textarea id="restock-notes" name="notes" />
               <FieldError errors={state.errors} name="notes" />
             </div>
@@ -361,9 +363,9 @@ export function RestockOrderFormDialog({
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-medium">Order items</h3>
+                <h3 className="font-medium">{t("dialogs.workflow.orderItems")}</h3>
                 <p className="text-sm text-muted-foreground">
-                  Build the replenishment basket before the supplier confirms it.
+                  {t("dialogs.workflow.orderItemsDescription")}
                 </p>
               </div>
               <Button
@@ -373,7 +375,7 @@ export function RestockOrderFormDialog({
                 onClick={() => setItems((currentItems) => [...currentItems, createEmptyLine()])}
               >
                 <Plus className="size-4" />
-                Add Line
+                {t("dialogs.workflow.addLine")}
               </Button>
             </div>
 
@@ -399,11 +401,11 @@ export function RestockOrderFormDialog({
               variant="outline"
               onClick={() => setOpen(false)}
             >
-              Cancel
+              {t("common.cancel")}
             </Button>
             <FormSubmitButton
-              idleLabel="Create restock order"
-              pendingLabel="Creating..."
+              idleLabel={t("dialogs.workflow.createRestockOrder")}
+              pendingLabel={t("dialogs.creating")}
             />
           </SheetFooter>
         </form>

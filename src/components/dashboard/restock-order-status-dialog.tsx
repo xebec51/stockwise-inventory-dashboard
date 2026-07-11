@@ -24,11 +24,11 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { initialMutationState } from "@/lib/actions";
+import { useI18n } from "@/lib/i18n/use-i18n";
 
 type RestockOrderStatusDialogProps = {
   actorId: string;
   actorLabel: string;
-  description: string;
   mode: "confirm" | "reject" | "in_transit" | "receive";
   orderId: string;
   poNumber: string;
@@ -37,11 +37,11 @@ type RestockOrderStatusDialogProps = {
 export function RestockOrderStatusDialog({
   actorId,
   actorLabel,
-  description,
   mode,
   orderId,
   poNumber,
 }: RestockOrderStatusDialogProps) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const action =
     mode === "confirm"
@@ -66,30 +66,39 @@ export function RestockOrderStatusDialog({
   const isDestructive = mode === "reject";
   const title =
     mode === "confirm"
-      ? "Confirm restock order"
+      ? t("dialogs.workflow.confirmOrder")
       : mode === "reject"
-        ? "Reject restock order"
+        ? t("dialogs.workflow.rejectOrder")
         : mode === "in_transit"
-          ? "Mark order in transit"
-          : "Mark order received";
+          ? t("dialogs.workflow.markInTransit")
+          : t("dialogs.workflow.markReceived");
 
   const idleLabel =
     mode === "confirm"
-      ? "Confirm"
+      ? t("dialogs.workflow.confirm")
       : mode === "reject"
-        ? "Reject"
+        ? t("dialogs.workflow.reject")
         : mode === "in_transit"
-          ? "Set In Transit"
-          : "Mark Received";
+          ? t("dialogs.workflow.setInTransit")
+          : t("dialogs.workflow.markReceived");
+
+  const description =
+    mode === "confirm"
+      ? t("dialogs.workflow.confirmOrderDescription")
+      : mode === "reject"
+        ? t("dialogs.workflow.rejectOrderDescription")
+        : mode === "in_transit"
+          ? t("dialogs.workflow.markInTransitDescription")
+          : t("dialogs.workflow.markReceivedDescription");
 
   const pendingLabel =
     mode === "confirm"
-      ? "Confirming..."
+      ? t("dialogs.workflow.confirming")
       : mode === "reject"
-        ? "Rejecting..."
+        ? t("dialogs.workflow.rejecting")
         : mode === "in_transit"
-          ? "Updating..."
-          : "Receiving...";
+          ? t("dialogs.workflow.updating")
+          : t("dialogs.workflow.receiving");
 
   const Icon =
     mode === "confirm"
@@ -132,19 +141,19 @@ export function RestockOrderStatusDialog({
             <Icon className="size-4" />
             <AlertTitle>{poNumber}</AlertTitle>
             <AlertDescription>
-              Acting as <strong>{actorLabel}</strong>.
+              {t("dialogs.workflow.actingAs", { actor: actorLabel })}
             </AlertDescription>
           </Alert>
 
           {state.message && !state.success ? (
             <Alert variant="destructive">
-              <AlertTitle>Workflow action blocked</AlertTitle>
+              <AlertTitle>{t("dialogs.workflow.workflowBlocked")}</AlertTitle>
               <AlertDescription>{state.message}</AlertDescription>
             </Alert>
           ) : null}
 
           <div className="space-y-2">
-            <Label htmlFor={`restock-status-note-${mode}`}>Note (optional)</Label>
+            <Label htmlFor={`restock-status-note-${mode}`}>{t("dialogs.workflow.optionalNote")}</Label>
             <Textarea id={`restock-status-note-${mode}`} name="notes" />
           </div>
 
@@ -154,7 +163,7 @@ export function RestockOrderStatusDialog({
               variant="outline"
               onClick={() => setOpen(false)}
             >
-              Cancel
+              {t("common.cancel")}
             </Button>
             <FormSubmitButton
               idleLabel={idleLabel}

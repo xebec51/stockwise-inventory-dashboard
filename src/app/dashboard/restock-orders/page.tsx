@@ -8,7 +8,7 @@ import {
 
 import { DataEmptyState } from "@/components/dashboard/data-empty-state";
 import { PageHeader } from "@/components/dashboard/page-header";
-import { RestockOrderFormDialog } from "@/components/dashboard/restock-order-form-dialog";
+import { RestockOrderFormSheet } from "@/components/dashboard/restock-order-form-sheet";
 import { RestockOrderStatusDialog } from "@/components/dashboard/restock-order-status-dialog";
 import { SupplierRatingFormDialog } from "@/components/dashboard/supplier-rating-form-dialog";
 import { Badge } from "@/components/ui/badge";
@@ -27,7 +27,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { getCurrentUser } from "@/lib/auth";
+import { requireDashboardPathAccess } from "@/lib/auth";
 import { formatCurrency, formatDate, formatDateTime } from "@/lib/formatters";
 import { getServerTranslator } from "@/lib/i18n/server";
 import { translateRestockStatus, translateRole } from "@/lib/i18n/status";
@@ -54,8 +54,8 @@ function getStatusBadgeVariant(status: string) {
 }
 
 export default async function RestockOrdersPage() {
+  const currentUser = await requireDashboardPathAccess("/dashboard/restock-orders");
   const { locale, t } = await getServerTranslator();
-  const currentUser = await getCurrentUser();
   const restockOrderWhere =
     currentUser?.role === "SUPPLIER"
       ? {
@@ -203,7 +203,7 @@ export default async function RestockOrdersPage() {
         description={t("restockOrders.description")}
         action={
           canCreateRestockOrders && currentUser ? (
-            <RestockOrderFormDialog
+            <RestockOrderFormSheet
               currentUser={currentUser}
               products={products}
               suppliers={suppliers.map((supplier) => ({
@@ -413,7 +413,6 @@ export default async function RestockOrdersPage() {
                               <RestockOrderStatusDialog
                                 actorId={order.supplier.user.id}
                                 actorLabel={`${order.supplier.user.name} (${t("roles.SUPPLIER")})`}
-                                description="The assigned supplier can confirm the order and begin delivery planning."
                                 mode="confirm"
                                 orderId={order.id}
                                 poNumber={order.poNumber}
@@ -421,7 +420,6 @@ export default async function RestockOrdersPage() {
                               <RestockOrderStatusDialog
                                 actorId={order.supplier.user.id}
                                 actorLabel={`${order.supplier.user.name} (${t("roles.SUPPLIER")})`}
-                                description="Reject the order if the supplier cannot fulfill this purchase request."
                                 mode="reject"
                                 orderId={order.id}
                                 poNumber={order.poNumber}
@@ -439,7 +437,6 @@ export default async function RestockOrdersPage() {
                             <RestockOrderStatusDialog
                               actorId={order.supplier.user.id}
                               actorLabel={`${order.supplier.user.name} (${t("roles.SUPPLIER")})`}
-                              description="Mark the confirmed order in transit once the shipment has left the supplier."
                               mode="in_transit"
                               orderId={order.id}
                               poNumber={order.poNumber}
@@ -456,7 +453,6 @@ export default async function RestockOrdersPage() {
                             <RestockOrderStatusDialog
                               actorId={order.manager.id}
                               actorLabel={`${order.manager.name} (${translateRole(order.manager.role, locale)})`}
-                              description="Mark the order received to create the linked incoming transaction and update product stock."
                               mode="receive"
                               orderId={order.id}
                               poNumber={order.poNumber}

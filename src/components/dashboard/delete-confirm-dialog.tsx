@@ -26,7 +26,6 @@ type DeleteConfirmDialogProps = {
     state: MutationState,
     formData: FormData
   ) => Promise<MutationState>;
-  description: string;
   entityId: string;
   entityLabel: string;
   title: string;
@@ -34,7 +33,6 @@ type DeleteConfirmDialogProps = {
 
 export function DeleteConfirmDialog({
   action,
-  description,
   entityId,
   entityLabel,
   title,
@@ -64,7 +62,9 @@ export function DeleteConfirmDialog({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{description}</DialogDescription>
+          <DialogDescription>
+            {t("dialogs.deleteWarning", { entity: entityLabel })}
+          </DialogDescription>
         </DialogHeader>
 
         <form action={formAction} className="space-y-4">

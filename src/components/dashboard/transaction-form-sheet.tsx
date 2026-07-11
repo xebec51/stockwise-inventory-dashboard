@@ -36,6 +36,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { type MutationState, initialMutationState } from "@/lib/actions";
 import type { AuthSessionUser } from "@/lib/auth";
+import { useI18n } from "@/lib/i18n/use-i18n";
 
 type ProductOption = {
   id: string;
@@ -45,7 +46,7 @@ type ProductOption = {
   unit: string;
 };
 
-type TransactionFormDialogProps = {
+type TransactionFormSheetProps = {
   currentUser: AuthSessionUser;
   products: ProductOption[];
 };
@@ -97,6 +98,7 @@ function TransactionItemRow({
   canRemove: boolean;
   setItems: Dispatch<SetStateAction<TransactionLineDraft[]>>;
 }) {
+  const { t } = useI18n();
   const selectId = useId();
   const quantityId = useId();
   const selectedProduct = products.find((product) => product.id === item.productId);
@@ -104,7 +106,7 @@ function TransactionItemRow({
   return (
     <div className="grid gap-3 rounded-2xl border border-border/70 bg-muted/20 p-4 md:grid-cols-[minmax(0,1fr)_10rem_auto]">
       <div className="space-y-2">
-        <Label htmlFor={selectId}>Product {index + 1}</Label>
+        <Label htmlFor={selectId}>{t("dialogs.workflow.productNumber", { number: index + 1 })}</Label>
         <Select
           value={item.productId}
           onValueChange={(value) =>
@@ -121,7 +123,7 @@ function TransactionItemRow({
           }
         >
           <SelectTrigger id={selectId} className="w-full">
-            <SelectValue placeholder="Select product" />
+            <SelectValue placeholder={t("dialogs.workflow.selectProduct")} />
           </SelectTrigger>
           <SelectContent>
             {products.map((product) => (
@@ -133,13 +135,13 @@ function TransactionItemRow({
         </Select>
         <p className="text-xs text-muted-foreground">
           {selectedProduct
-            ? `Current stock: ${selectedProduct.currentStock} ${selectedProduct.unit}`
-            : "Choose a product to set the quantity line."}
+            ? t("dialogs.workflow.currentStock", { stock: selectedProduct.currentStock, unit: selectedProduct.unit })
+            : t("dialogs.workflow.chooseProduct")}
         </p>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor={quantityId}>Quantity</Label>
+        <Label htmlFor={quantityId}>{t("dialogs.workflow.quantity")}</Label>
         <Input
           id={quantityId}
           type="number"
@@ -161,8 +163,8 @@ function TransactionItemRow({
         />
         <p className="text-xs text-muted-foreground">
           {type === "INCOMING"
-            ? "Approved incoming lines add stock."
-            : "Approved outgoing lines deduct stock."}
+            ? t("dialogs.workflow.incomingAdds")
+            : t("dialogs.workflow.outgoingDeducts")}
         </p>
       </div>
 
@@ -179,17 +181,18 @@ function TransactionItemRow({
           }
         >
           <Minus className="size-4" />
-          Remove
+          {t("dialogs.workflow.remove")}
         </Button>
       </div>
     </div>
   );
 }
 
-export function TransactionFormDialog({
+export function TransactionFormSheet({
   currentUser,
   products,
-}: TransactionFormDialogProps) {
+}: TransactionFormSheetProps) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [typeValue, setTypeValue] =
     useState<(typeof transactionTypeOptions)[number]>("INCOMING");
@@ -237,17 +240,16 @@ export function TransactionFormDialog({
     <Sheet open={open} onOpenChange={handleOpenChange}>
       <SheetTrigger render={<Button size="sm" />}>
         <Plus className="size-4" />
-        Create Transaction
+        {t("dialogs.workflow.createTransaction")}
       </SheetTrigger>
       <SheetContent
         className="w-full overflow-y-auto sm:max-w-4xl"
         side="right"
       >
         <SheetHeader className="border-b border-border/70">
-          <SheetTitle>Create transaction</SheetTitle>
+          <SheetTitle>{t("dialogs.workflow.createTransaction")}</SheetTitle>
           <SheetDescription>
-            Record a pending incoming or outgoing stock movement with multiple
-            product lines for manager review.
+            {t("dialogs.workflow.createTransactionDescription")}
           </SheetDescription>
         </SheetHeader>
 
@@ -258,14 +260,14 @@ export function TransactionFormDialog({
 
           {state.message && !state.success ? (
             <Alert variant="destructive">
-              <AlertTitle>Unable to create transaction</AlertTitle>
+              <AlertTitle>{t("dialogs.workflow.unableCreateTransaction")}</AlertTitle>
               <AlertDescription>{state.message}</AlertDescription>
             </Alert>
           ) : null}
 
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="transaction-created-by">Created By</Label>
+              <Label htmlFor="transaction-created-by">{t("dialogs.workflow.createdBy")}</Label>
               <Input
                 id="transaction-created-by"
                 value={`${currentUser.name} (${currentUser.role})`}
@@ -275,7 +277,7 @@ export function TransactionFormDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="transaction-type">Type</Label>
+              <Label htmlFor="transaction-type">{t("dialogs.workflow.type")}</Label>
               <Select
                 value={typeValue}
                 onValueChange={(value) =>
@@ -289,12 +291,12 @@ export function TransactionFormDialog({
                   className="w-full"
                   aria-invalid={Boolean(state.errors?.type?.length)}
                 >
-                  <SelectValue placeholder="Select type" />
+                  <SelectValue placeholder={t("dialogs.workflow.selectType")} />
                 </SelectTrigger>
                 <SelectContent>
                   {transactionTypeOptions.map((typeOption) => (
                     <SelectItem key={typeOption} value={typeOption}>
-                      {typeOption}
+                      {t(`statuses.transaction.${typeOption}`)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -303,7 +305,7 @@ export function TransactionFormDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="transaction-date">Transaction Date</Label>
+              <Label htmlFor="transaction-date">{t("dialogs.workflow.transactionDate")}</Label>
               <Input
                 id="transaction-date"
                 name="transactionDate"
@@ -315,13 +317,13 @@ export function TransactionFormDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="transaction-destination">Destination</Label>
+              <Label htmlFor="transaction-destination">{t("dialogs.workflow.destination")}</Label>
               <Input id="transaction-destination" name="destination" />
               <FieldError errors={state.errors} name="destination" />
             </div>
 
             <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="transaction-notes">Notes</Label>
+              <Label htmlFor="transaction-notes">{t("dialogs.workflow.notes")}</Label>
               <Textarea id="transaction-notes" name="notes" />
               <FieldError errors={state.errors} name="notes" />
             </div>
@@ -330,9 +332,9 @@ export function TransactionFormDialog({
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-medium">Transaction items</h3>
+                <h3 className="font-medium">{t("dialogs.workflow.transactionItems")}</h3>
                 <p className="text-sm text-muted-foreground">
-                  Pending transactions do not change stock until they are approved.
+                  {t("dialogs.workflow.transactionItemsDescription")}
                 </p>
               </div>
               <Button
@@ -342,7 +344,7 @@ export function TransactionFormDialog({
                 onClick={() => setItems((currentItems) => [...currentItems, createEmptyLine()])}
               >
                 <Plus className="size-4" />
-                Add Line
+                {t("dialogs.workflow.addLine")}
               </Button>
             </div>
 
@@ -369,11 +371,11 @@ export function TransactionFormDialog({
               variant="outline"
               onClick={() => setOpen(false)}
             >
-              Cancel
+              {t("common.cancel")}
             </Button>
             <FormSubmitButton
-              idleLabel="Create transaction"
-              pendingLabel="Creating..."
+              idleLabel={t("dialogs.workflow.createTransaction")}
+              pendingLabel={t("dialogs.creating")}
             />
           </SheetFooter>
         </form>

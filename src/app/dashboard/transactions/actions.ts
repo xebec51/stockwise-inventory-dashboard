@@ -8,6 +8,7 @@ import { Prisma, TransactionType } from "@/generated/prisma/client";
 import { type MutationState } from "@/lib/actions";
 import { requireCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { withSerializableRetry } from "@/lib/prisma-transaction";
 import { getStockAfterMovement } from "@/lib/stock";
 import {
   transactionDecisionSchema,
@@ -82,6 +83,35 @@ function revalidateTransactionRoutes() {
   revalidatePath("/dashboard/transactions");
   revalidatePath("/dashboard/products");
   revalidatePath("/dashboard");
+}
+
+async function lockTransactionForUpdate(
+  client: Pick<typeof prisma, "$queryRaw">,
+  transactionId: string
+) {
+  await client.$queryRaw<{ id: string }[]>`
+    SELECT id
+    FROM transactions
+    WHERE id = ${transactionId}
+    FOR UPDATE
+  `;
+}
+
+async function lockProductsForUpdate(
+  client: Pick<typeof prisma, "$queryRaw">,
+  productIds: string[]
+) {
+  const sortedIds = [...new Set(productIds)].sort();
+
+  if (sortedIds.length === 0) return;
+
+  await client.$queryRaw<{ id: string }[]>`
+    SELECT id
+    FROM products
+    WHERE id IN (${Prisma.join(sortedIds)})
+    ORDER BY id
+    FOR UPDATE
+  `;
 }
 
 async function generateTransactionNumber() {
@@ -165,8 +195,9 @@ export async function createTransaction(
 
     const transactionNumber = await generateTransactionNumber();
 
-    const createResult = await prisma.$transaction(
-      async (tx) => {
+    const createResult = await withSerializableRetry(() =>
+      prisma.$transaction(
+        async (tx) => {
         const products = await tx.product.findMany({
           where: {
             id: {
@@ -266,10 +297,11 @@ export async function createTransaction(
         return {
           ok: true as const,
         };
-      },
-      {
-        isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
-      }
+        },
+        {
+          isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+        }
+      )
     );
 
     if (!createResult.ok) {
@@ -304,8 +336,19 @@ export async function approveTransaction(
 
     const approvedAt = new Date();
 
-    const approvalResult = await prisma.$transaction(
-      async (tx) => {
+    const approvalResult = await withSerializableRetry(() =>
+      prisma.$transaction(
+        async (tx) => {
+        await lockTransactionForUpdate(tx, values.id);
+        const itemProductIds = await tx.transactionItem.findMany({
+          where: { transactionId: values.id },
+          select: { productId: true },
+        });
+        await lockProductsForUpdate(
+          tx,
+          itemProductIds.map((item) => item.productId)
+        );
+
         const transaction = await tx.transaction.findUnique({
           where: {
             id: values.id,
@@ -453,10 +496,11 @@ export async function approveTransaction(
         return {
           ok: true as const,
         };
-      },
-      {
-        isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
-      }
+        },
+        {
+          isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+        }
+      )
     );
 
     if (!approvalResult.ok) {
@@ -491,8 +535,10 @@ export async function rejectTransaction(
 
     const rejectedAt = new Date();
 
-    const rejectionResult = await prisma.$transaction(
-      async (tx) => {
+    const rejectionResult = await withSerializableRetry(() =>
+      prisma.$transaction(
+        async (tx) => {
+        await lockTransactionForUpdate(tx, values.id);
         const transaction = await tx.transaction.findUnique({
           where: {
             id: values.id,
@@ -556,10 +602,11 @@ export async function rejectTransaction(
         return {
           ok: true as const,
         };
-      },
-      {
-        isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
-      }
+        },
+        {
+          isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+        }
+      )
     );
 
     if (!rejectionResult.ok) {

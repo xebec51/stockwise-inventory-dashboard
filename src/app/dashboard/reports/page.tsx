@@ -14,10 +14,12 @@ import { getServerTranslator } from "@/lib/i18n/server";
 import { translateStockStatus, translateTransactionStatus } from "@/lib/i18n/status";
 import { prisma } from "@/lib/prisma";
 import { getStockStatus } from "@/lib/stock";
+import { requireDashboardPathAccess } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 export default async function ReportsPage() {
+  await requireDashboardPathAccess("/dashboard/reports");
   const { locale, t } = await getServerTranslator();
   const [products, transactions] = await Promise.all([
     prisma.product.findMany({

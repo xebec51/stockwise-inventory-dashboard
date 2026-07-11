@@ -22,7 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { getCurrentUser } from "@/lib/auth";
+import { requireDashboardPathAccess } from "@/lib/auth";
 import { formatDate } from "@/lib/formatters";
 import { getServerTranslator } from "@/lib/i18n/server";
 import { translateUserStatus } from "@/lib/i18n/status";
@@ -47,8 +47,8 @@ function getStatusBadgeVariant(status: string) {
 }
 
 export default async function SuppliersPage() {
+  const currentUser = await requireDashboardPathAccess("/dashboard/suppliers");
   const { locale, t } = await getServerTranslator();
-  const currentUser = await getCurrentUser();
   const [
     suppliers,
     supplierCount,
@@ -345,7 +345,6 @@ export default async function SuppliersPage() {
                               />
                               <DeleteConfirmDialog
                                 action={deleteSupplier}
-                                description="Delete this supplier only when it has no operational history, restock references, or retained audit data."
                                 entityId={supplier.id}
                                 entityLabel={supplier.companyName}
                                 title={t("suppliers.deleteSupplier")}

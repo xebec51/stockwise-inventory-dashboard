@@ -35,14 +35,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { FormSubmitButton } from "@/components/dashboard/form-submit-button";
 import { useI18n } from "@/lib/i18n/use-i18n";
 
-type ProductDialogMode = "create" | "edit";
+type ProductSheetMode = "create" | "edit";
 
-type ProductFormDialogProps = {
+type ProductFormSheetProps = {
   categories: Array<{
     id: string;
     name: string;
   }>;
-  mode: ProductDialogMode;
+  mode: ProductSheetMode;
   product?: {
     id: string;
     categoryId: string;
@@ -76,11 +76,11 @@ function FieldError({
   return <p className="text-xs text-destructive">{message}</p>;
 }
 
-export function ProductFormDialog({
+export function ProductFormSheet({
   categories,
   mode,
   product,
-}: ProductFormDialogProps) {
+}: ProductFormSheetProps) {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [categoryValue, setCategoryValue] = useState(product?.categoryId ?? "");

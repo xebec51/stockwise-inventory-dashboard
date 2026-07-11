@@ -28,7 +28,7 @@ export default withAuth(
     }
 
     if (!canAccessDashboardPath(token.role as AppRole, request.nextUrl.pathname)) {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
+      return NextResponse.redirect(new URL("/unauthorized", request.url));
     }
 
     return NextResponse.next();

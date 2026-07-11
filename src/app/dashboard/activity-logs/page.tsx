@@ -3,8 +3,10 @@ import { FolderKanban } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { PlaceholderState } from "@/components/dashboard/placeholder-state";
 import { getServerTranslator } from "@/lib/i18n/server";
+import { requireDashboardPathAccess } from "@/lib/auth";
 
 export default async function ActivityLogsPage() {
+  await requireDashboardPathAccess("/dashboard/activity-logs");
   const { t } = await getServerTranslator();
 
   return (

@@ -5,7 +5,7 @@ import { DataEmptyState } from "@/components/dashboard/data-empty-state";
 import { DeleteConfirmDialog } from "@/components/dashboard/delete-confirm-dialog";
 import { ExportButtons } from "@/components/dashboard/export-buttons";
 import { PageHeader } from "@/components/dashboard/page-header";
-import { ProductFormDialog } from "@/components/dashboard/product-form-dialog";
+import { ProductFormSheet } from "@/components/dashboard/product-form-sheet";
 import { ProductQrDialog } from "@/components/dashboard/product-qr-dialog";
 import { StockStatusBadge } from "@/components/dashboard/stock-status-badge";
 import {
@@ -23,7 +23,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { getCurrentUser } from "@/lib/auth";
+import { requireDashboardPathAccess } from "@/lib/auth";
 import { formatCurrency } from "@/lib/formatters";
 import { getServerTranslator } from "@/lib/i18n/server";
 import { translateStockStatus } from "@/lib/i18n/status";
@@ -35,9 +35,9 @@ export const dynamic = "force-dynamic";
 const PRODUCT_TABLE_LIMIT = 50;
 
 export default async function ProductsPage() {
+  const currentUser = await requireDashboardPathAccess("/dashboard/products");
   const { locale, t } = await getServerTranslator();
-  const [currentUser, products, categories] = await Promise.all([
-    getCurrentUser(),
+  const [products, categories] = await Promise.all([
     prisma.product.findMany({
       take: PRODUCT_TABLE_LIMIT,
       select: {
@@ -102,7 +102,7 @@ export default async function ProductsPage() {
               />
             ) : null}
             {currentUser?.role === "ADMIN" ? (
-              <ProductFormDialog categories={categories} mode="create" />
+              <ProductFormSheet categories={categories} mode="create" />
             ) : null}
           </div>
         }
@@ -183,7 +183,7 @@ export default async function ProductsPage() {
                           />
                           {currentUser?.role === "ADMIN" ? (
                             <>
-                              <ProductFormDialog
+                              <ProductFormSheet
                                 categories={categories}
                                 mode="edit"
                                 product={{
@@ -204,7 +204,6 @@ export default async function ProductsPage() {
                               />
                               <DeleteConfirmDialog
                                 action={deleteProduct}
-                                description="Delete this product from the catalog. Stock status remains computed and will disappear with the record."
                                 entityId={product.id}
                                 entityLabel={product.name}
                                 title={t("products.deleteProduct")}

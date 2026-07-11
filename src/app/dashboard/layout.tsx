@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { getDashboardNavItemsForRole } from "@/config/dashboard-nav";
-import { requireCurrentUser } from "@/lib/auth";
+import { requireDashboardPathAccess } from "@/lib/auth";
 
 export default function DashboardLayout({
   children,
@@ -13,7 +13,7 @@ export default function DashboardLayout({
 async function DashboardLayoutContent({
   children,
 }: Readonly<{ children: ReactNode }>) {
-  const currentUser = await requireCurrentUser();
+  const currentUser = await requireDashboardPathAccess("/dashboard");
   const navItems = getDashboardNavItemsForRole(currentUser.role);
 
   return (

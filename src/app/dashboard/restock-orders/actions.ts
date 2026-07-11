@@ -8,6 +8,7 @@ import { Prisma } from "@/generated/prisma/client";
 import { type MutationState } from "@/lib/actions";
 import { requireCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { withSerializableRetry } from "@/lib/prisma-transaction";
 import { getStockAfterMovement } from "@/lib/stock";
 import {
   restockOrderDecisionSchema,
@@ -98,6 +99,35 @@ function revalidateRestockRoutes() {
   revalidatePath("/dashboard/products");
   revalidatePath("/dashboard/suppliers");
   revalidatePath("/dashboard");
+}
+
+async function lockRestockOrderForUpdate(
+  client: Pick<typeof prisma, "$queryRaw">,
+  restockOrderId: string
+) {
+  await client.$queryRaw<{ id: string }[]>`
+    SELECT id
+    FROM restock_orders
+    WHERE id = ${restockOrderId}
+    FOR UPDATE
+  `;
+}
+
+async function lockProductsForUpdate(
+  client: Pick<typeof prisma, "$queryRaw">,
+  productIds: string[]
+) {
+  const sortedIds = [...new Set(productIds)].sort();
+
+  if (sortedIds.length === 0) return;
+
+  await client.$queryRaw<{ id: string }[]>`
+    SELECT id
+    FROM products
+    WHERE id IN (${Prisma.join(sortedIds)})
+    ORDER BY id
+    FOR UPDATE
+  `;
 }
 
 async function generateTransactionNumber() {
@@ -201,8 +231,11 @@ function describeRestockAction(
   return `${action} restock order ${poNumber} by ${actorName}.`;
 }
 
-async function loadRestockOrderForDecision(id: string) {
-  return prisma.restockOrder.findUnique({
+async function loadRestockOrderForDecision(
+  id: string,
+  client: Pick<typeof prisma, "restockOrder"> = prisma
+) {
+  return client.restockOrder.findUnique({
     where: { id },
     select: {
       id: true,
@@ -651,27 +684,63 @@ export async function receiveRestockOrder(
     const receivedAt = new Date();
     const transactionNumber = await generateTransactionNumber();
 
-    const receiveResult = await prisma.$transaction(
-      async (tx) => {
+    const receiveResult = await withSerializableRetry(() =>
+      prisma.$transaction(
+        async (tx) => {
+        await lockRestockOrderForUpdate(tx, values.id);
+        const itemProductIds = await tx.restockOrderItem.findMany({
+          where: { restockOrderId: values.id },
+          select: { productId: true },
+        });
+        await lockProductsForUpdate(
+          tx,
+          itemProductIds.map((item) => item.productId)
+        );
+
+        const lockedOrder = await loadRestockOrderForDecision(values.id, tx);
+
+        if (!lockedOrder || lockedOrder.status !== "IN_TRANSIT") {
+          return {
+            ok: false as const,
+            state: { message: "Only in-transit restock orders can be marked received." },
+          };
+        }
+
+        const lockedManagerCanReceive =
+          sessionUser.role === "ADMIN" ||
+          (sessionUser.id === lockedOrder.manager.id &&
+            lockedOrder.manager.status === "ACTIVE");
+
+        if (!lockedManagerCanReceive || lockedOrder.sourceTransaction) {
+          return {
+            ok: false as const,
+            state: {
+              message: lockedOrder.sourceTransaction
+                ? "This restock order already has a linked incoming transaction."
+                : "Only the assigned active manager can mark this order received.",
+            },
+          };
+        }
+
         await tx.restockOrder.update({
-          where: { id: restockOrder.id },
+          where: { id: lockedOrder.id },
           data: {
             status: "RECEIVED",
             receivedAt,
-            notes: appendNote(restockOrder.notes, "Receipt note", values.notes),
+            notes: appendNote(lockedOrder.notes, "Receipt note", values.notes),
           },
         });
 
         const transaction = await tx.transaction.create({
           data: {
             transactionNumber,
-            createdById: restockOrder.managerId,
+            createdById: lockedOrder.managerId,
             approvedById: sessionUser.id,
-            sourceRestockOrderId: restockOrder.id,
+            sourceRestockOrderId: lockedOrder.id,
             type: "INCOMING",
             status: "COMPLETED",
-            destination: `Restock receipt from ${restockOrder.supplier.companyName}`,
-            notes: `Auto-created from restock order ${restockOrder.poNumber}.`,
+            destination: `Restock receipt from ${lockedOrder.supplier.companyName}`,
+            notes: `Auto-created from restock order ${lockedOrder.poNumber}.`,
             transactionDate: receivedAt,
             approvedAt: receivedAt,
           },
@@ -680,7 +749,7 @@ export async function receiveRestockOrder(
           },
         });
 
-        for (const item of restockOrder.items) {
+        for (const item of lockedOrder.items) {
           const stockBefore = item.product.currentStock;
           const stockAfter = getStockAfterMovement({
             currentStock: stockBefore,
@@ -727,8 +796,8 @@ export async function receiveRestockOrder(
             module: "RESTOCK_ORDERS",
             description: describeRestockAction(
               "Marked received",
-              restockOrder.poNumber,
-              sessionUser.name ?? restockOrder.manager.name
+              lockedOrder.poNumber,
+              sessionUser.name ?? lockedOrder.manager.name
             ),
             ipAddress: "127.0.0.1",
           },
@@ -737,10 +806,11 @@ export async function receiveRestockOrder(
         return {
           ok: true as const,
         };
-      },
-      {
-        isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
-      }
+        },
+        {
+          isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+        }
+      )
     );
 
     if (!receiveResult.ok) {

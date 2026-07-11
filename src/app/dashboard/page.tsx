@@ -28,6 +28,7 @@ import {
 import { prisma } from "@/lib/prisma";
 import { getStockStatus } from "@/lib/stock";
 import { cn } from "@/lib/utils";
+import { requireDashboardPathAccess } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -49,7 +50,23 @@ function getStatusBadgeVariant(status: string) {
 }
 
 export default async function DashboardPage() {
+  const currentUser = await requireDashboardPathAccess("/dashboard");
   const { locale, t } = await getServerTranslator();
+  const canViewInventory = currentUser.role !== "SUPPLIER";
+  const transactionWhere =
+    currentUser.role === "STAFF"
+      ? { createdById: currentUser.id }
+      : currentUser.role === "SUPPLIER"
+        ? { id: "__restricted__" }
+        : undefined;
+  const restockWhere =
+    currentUser.role === "SUPPLIER"
+      ? { supplier: { userId: currentUser.id } }
+      : currentUser.role === "MANAGER"
+        ? { managerId: currentUser.id }
+        : currentUser.role === "STAFF"
+          ? { id: "__restricted__" }
+          : undefined;
   const [
     products,
     movementTransactions,
@@ -58,6 +75,7 @@ export default async function DashboardPage() {
     activeRestockOrderCount,
   ] = await Promise.all([
     prisma.product.findMany({
+      where: canViewInventory ? undefined : { id: "__restricted__" },
       select: {
         id: true,
         name: true,
@@ -73,6 +91,7 @@ export default async function DashboardPage() {
     }),
     prisma.transaction.findMany({
       where: {
+        ...transactionWhere,
         status: {
           in: ["APPROVED", "COMPLETED"],
         },
@@ -88,6 +107,7 @@ export default async function DashboardPage() {
       },
     }),
     prisma.transaction.findMany({
+      where: transactionWhere,
       take: RECENT_TRANSACTION_LIMIT,
       orderBy: [{ transactionDate: "desc" }, { createdAt: "desc" }],
       select: {
@@ -106,11 +126,13 @@ export default async function DashboardPage() {
     }),
     prisma.transaction.count({
       where: {
+        ...transactionWhere,
         status: "PENDING",
       },
     }),
     prisma.restockOrder.count({
       where: {
+        ...restockWhere,
         status: {
           in: ["PENDING", "CONFIRMED", "IN_TRANSIT"],
         },

@@ -24,6 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { type MutationState, initialMutationState } from "@/lib/actions";
 import type { AuthSessionUser } from "@/lib/auth";
+import { useI18n } from "@/lib/i18n/use-i18n";
 
 type TransactionReviewDialogProps = {
   currentUser: AuthSessionUser;
@@ -56,6 +57,7 @@ export function TransactionReviewDialog({
   mode,
   transaction,
 }: TransactionReviewDialogProps) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const action = mode === "approve" ? approveTransaction : rejectTransaction;
   const [state, formAction] = useActionState(action, initialMutationState);
@@ -94,24 +96,24 @@ export function TransactionReviewDialog({
         {isApprove ? (
           <>
             <CheckCircle2 className="size-4" />
-            Approve
+            {t("dialogs.workflow.approve")}
           </>
         ) : (
           <>
             <XCircle className="size-4" />
-            Reject
+            {t("dialogs.workflow.reject")}
           </>
         )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>
-            {isApprove ? "Approve transaction" : "Reject transaction"}
+            {isApprove ? t("dialogs.workflow.approveTitle") : t("dialogs.workflow.rejectTitle")}
           </DialogTitle>
           <DialogDescription>
             {isApprove
-              ? `Approve ${transaction.transactionNumber} to apply its ${transaction.type.toLowerCase()} stock movement.`
-              : `Reject ${transaction.transactionNumber} to keep stock unchanged and preserve the audit trail.`}
+              ? t("dialogs.workflow.approveDescription", { number: transaction.transactionNumber, type: transaction.type.toLowerCase() })
+              : t("dialogs.workflow.rejectDescription", { number: transaction.transactionNumber })}
           </DialogDescription>
         </DialogHeader>
 
@@ -122,24 +124,24 @@ export function TransactionReviewDialog({
           <Alert variant={isApprove ? "default" : "destructive"}>
             <ShieldAlert className="size-4" />
             <AlertTitle>
-              {isApprove ? "Stock update warning" : "Rejection keeps stock unchanged"}
+              {isApprove ? t("dialogs.workflow.stockUpdateWarning") : t("dialogs.workflow.rejectionNoStock")}
             </AlertTitle>
             <AlertDescription>
               {isApprove
-                ? "Approving this request recalculates stockBefore and stockAfter from current live inventory and updates product stock."
-                : "Rejecting this request preserves the pending audit record without changing product stock."}
+                ? t("dialogs.workflow.approvalWarning")
+                : t("dialogs.workflow.rejectionWarning")}
             </AlertDescription>
           </Alert>
 
           {state.message && !state.success ? (
             <Alert variant="destructive">
-              <AlertTitle>Review action blocked</AlertTitle>
+              <AlertTitle>{t("dialogs.workflow.reviewBlocked")}</AlertTitle>
               <AlertDescription>{state.message}</AlertDescription>
             </Alert>
           ) : null}
 
           <div className="space-y-2">
-            <Label htmlFor={`transaction-approver-${mode}`}>Approver</Label>
+            <Label htmlFor={`transaction-approver-${mode}`}>{t("dialogs.workflow.approver")}</Label>
             <Input
               id={`transaction-approver-${mode}`}
               value={`${currentUser.name} (${currentUser.role})`}
@@ -150,7 +152,7 @@ export function TransactionReviewDialog({
 
           <div className="space-y-2">
             <Label htmlFor={`transaction-review-note-${mode}`}>
-              {isApprove ? "Approval Note (optional)" : "Rejection Note (optional)"}
+              {isApprove ? t("dialogs.workflow.approvalNote") : t("dialogs.workflow.rejectionNote")}
             </Label>
             <Textarea id={`transaction-review-note-${mode}`} name="notes" />
             <FieldError errors={state.errors} name="notes" />
@@ -162,11 +164,11 @@ export function TransactionReviewDialog({
               variant="outline"
               onClick={() => setOpen(false)}
             >
-              Cancel
+              {t("common.cancel")}
             </Button>
             <FormSubmitButton
-              idleLabel={isApprove ? "Approve transaction" : "Reject transaction"}
-              pendingLabel={isApprove ? "Approving..." : "Rejecting..."}
+              idleLabel={isApprove ? t("dialogs.workflow.approveTitle") : t("dialogs.workflow.rejectTitle")}
+              pendingLabel={isApprove ? t("dialogs.workflow.approving") : t("dialogs.workflow.rejecting")}
               variant={isApprove ? "default" : "destructive"}
             />
           </DialogFooter>

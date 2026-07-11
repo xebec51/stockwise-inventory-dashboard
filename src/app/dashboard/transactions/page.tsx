@@ -9,7 +9,7 @@ import {
 import { DataEmptyState } from "@/components/dashboard/data-empty-state";
 import { ExportButtons } from "@/components/dashboard/export-buttons";
 import { PageHeader } from "@/components/dashboard/page-header";
-import { TransactionFormDialog } from "@/components/dashboard/transaction-form-dialog";
+import { TransactionFormSheet } from "@/components/dashboard/transaction-form-sheet";
 import { TransactionReviewDialog } from "@/components/dashboard/transaction-review-dialog";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -27,7 +27,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { getCurrentUser } from "@/lib/auth";
+import { requireDashboardPathAccess } from "@/lib/auth";
 import { formatDateTime } from "@/lib/formatters";
 import { getServerTranslator } from "@/lib/i18n/server";
 import { translateRole, translateTransactionStatus } from "@/lib/i18n/status";
@@ -56,8 +56,8 @@ function getTypeBadgeVariant(type: string) {
 }
 
 export default async function TransactionsPage() {
+  const currentUser = await requireDashboardPathAccess("/dashboard/transactions");
   const { locale, t } = await getServerTranslator();
-  const currentUser = await getCurrentUser();
   const transactionWhere =
     currentUser?.role === "STAFF"
       ? {
@@ -192,7 +192,7 @@ export default async function TransactionsPage() {
               sheetName="Transactions"
             />
             {canCreateTransactions && currentUser ? (
-              <TransactionFormDialog currentUser={currentUser} products={products} />
+              <TransactionFormSheet currentUser={currentUser} products={products} />
             ) : null}
           </div>
         }

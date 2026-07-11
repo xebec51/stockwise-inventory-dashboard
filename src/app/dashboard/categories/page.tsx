@@ -23,12 +23,14 @@ import {
 import { formatDate } from "@/lib/formatters";
 import { getServerTranslator } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
+import { requireDashboardPathAccess } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 const CATEGORY_TABLE_LIMIT = 50;
 
 export default async function CategoriesPage() {
+  await requireDashboardPathAccess("/dashboard/categories");
   const { locale, t } = await getServerTranslator();
   const categories = await prisma.category.findMany({
     take: CATEGORY_TABLE_LIMIT,
@@ -108,7 +110,6 @@ export default async function CategoriesPage() {
                         />
                         <DeleteConfirmDialog
                           action={deleteCategory}
-                          description="Delete this category only if it no longer has any products assigned to it."
                           entityId={category.id}
                           entityLabel={category.name}
                           title={t("categories.deleteCategory")}

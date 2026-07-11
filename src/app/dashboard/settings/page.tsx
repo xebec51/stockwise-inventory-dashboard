@@ -5,8 +5,10 @@ import { PageHeader } from "@/components/dashboard/page-header";
 import { PlaceholderState } from "@/components/dashboard/placeholder-state";
 import { Card, CardContent } from "@/components/ui/card";
 import { getServerTranslator } from "@/lib/i18n/server";
+import { requireDashboardPathAccess } from "@/lib/auth";
 
 export default async function SettingsPage() {
+  await requireDashboardPathAccess("/dashboard/settings");
   const { t } = await getServerTranslator();
 
   return (

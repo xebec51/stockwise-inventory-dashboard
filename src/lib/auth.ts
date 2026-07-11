@@ -4,8 +4,12 @@ import bcrypt from "bcryptjs";
 import type { DefaultSession, NextAuthOptions } from "next-auth";
 import { getServerSession } from "next-auth/next";
 import CredentialsProvider from "next-auth/providers/credentials";
+import { redirect } from "next/navigation";
 
-import { type AppRole } from "@/config/role-access";
+import {
+  canAccessDashboardPath,
+  type AppRole,
+} from "@/config/role-access";
 import { prisma } from "@/lib/prisma";
 
 export type AuthSessionUser = DefaultSession["user"] & {
@@ -15,7 +19,7 @@ export type AuthSessionUser = DefaultSession["user"] & {
 };
 
 export const authOptions: NextAuthOptions = {
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET,
   session: {
     strategy: "jwt",
   },
@@ -131,6 +135,24 @@ export async function requireCurrentUser(allowedRoles?: AppRole[]) {
 
   if (allowedRoles && !allowedRoles.includes(user.role)) {
     throw new Error("FORBIDDEN");
+  }
+
+  return user;
+}
+
+export async function requireDashboardPathAccess(pathname: string) {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    redirect(`/login?callbackUrl=${encodeURIComponent(pathname)}`);
+  }
+
+  if (user.status !== "ACTIVE") {
+    redirect(`/login?error=${user.status}`);
+  }
+
+  if (!canAccessDashboardPath(user.role, pathname)) {
+    redirect("/unauthorized");
   }
 
   return user;
