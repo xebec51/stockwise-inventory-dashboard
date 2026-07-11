@@ -18,6 +18,9 @@ import { Separator } from "@/components/ui/separator";
 import { NavItem } from "@/components/dashboard/nav-item";
 import { SignOutButton } from "@/components/dashboard/sign-out-button";
 import type { AuthSessionUser } from "@/lib/auth";
+import { LanguageSwitcher } from "@/components/language-switcher";
+import { translateRole } from "@/lib/i18n/status";
+import { useI18n } from "@/lib/i18n/use-i18n";
 
 type DashboardMobileNavProps = {
   currentUser: AuthSessionUser;
@@ -29,6 +32,7 @@ export function DashboardMobileNav({
   navItems,
 }: DashboardMobileNavProps) {
   const [open, setOpen] = useState(false);
+  const { locale, t } = useI18n();
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -38,7 +42,7 @@ export function DashboardMobileNav({
             variant="outline"
             size="icon-sm"
             className="lg:hidden"
-            aria-label="Open navigation menu"
+            aria-label={t("nav.dashboard")}
           />
         }
       >
@@ -52,7 +56,7 @@ export function DashboardMobileNav({
             </div>
             <div>
               <SheetTitle>StockWise</SheetTitle>
-              <SheetDescription>Warehouse dashboard foundation</SheetDescription>
+              <SheetDescription>{t("landing.badge")}</SheetDescription>
             </div>
           </Link>
         </SheetHeader>
@@ -70,11 +74,12 @@ export function DashboardMobileNav({
           <Separator className="my-4" />
           <div className="space-y-3 px-2">
             <p className="text-sm font-medium">
-              {currentUser.name} ({currentUser.role})
+              {currentUser.name} ({translateRole(currentUser.role, locale)})
             </p>
             <p className="text-sm leading-6 text-muted-foreground">
-              Signed in with role-aware access to the StockWise workspace.
+              {t("dashboard.mobileDescription")}
             </p>
+            <LanguageSwitcher />
             <SignOutButton />
           </div>
         </div>

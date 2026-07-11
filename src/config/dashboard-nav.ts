@@ -27,66 +27,66 @@ export const dashboardIconMap = {
 export type DashboardIconKey = keyof typeof dashboardIconMap;
 
 export type DashboardNavItem = {
-  title: string;
+  titleKey: string;
   href: string;
   icon: DashboardIconKey;
-  description: string;
+  descriptionKey: string;
 };
 
 export const dashboardNavItems: DashboardNavItem[] = [
   {
-    title: "Dashboard",
+    titleKey: "nav.dashboard",
     href: "/dashboard",
     icon: "dashboard",
-    description: "Warehouse overview and operational summary surfaces.",
+    descriptionKey: "navDescription.dashboard",
   },
   {
-    title: "Products",
+    titleKey: "nav.products",
     href: "/dashboard/products",
     icon: "products",
-    description: "Catalog structure for warehouse products, stock, and labels.",
+    descriptionKey: "navDescription.products",
   },
   {
-    title: "Categories",
+    titleKey: "nav.categories",
     href: "/dashboard/categories",
     icon: "categories",
-    description: "Classification layer for organizing inventory groups.",
+    descriptionKey: "navDescription.categories",
   },
   {
-    title: "Transactions",
+    titleKey: "nav.transactions",
     href: "/dashboard/transactions",
     icon: "transactions",
-    description: "Incoming and outgoing stock movement workflows.",
+    descriptionKey: "navDescription.transactions",
   },
   {
-    title: "Restock Orders",
+    titleKey: "nav.restockOrders",
     href: "/dashboard/restock-orders",
     icon: "restockOrders",
-    description: "Purchase order and supplier replenishment coordination.",
+    descriptionKey: "navDescription.restockOrders",
   },
   {
-    title: "Suppliers",
+    titleKey: "nav.suppliers",
     href: "/dashboard/suppliers",
     icon: "suppliers",
-    description: "Supplier profiles, coordination, and future rating insights.",
+    descriptionKey: "navDescription.suppliers",
   },
   {
-    title: "Reports",
+    titleKey: "nav.reports",
     href: "/dashboard/reports",
     icon: "reports",
-    description: "Exports, analytics snapshots, and reporting utilities.",
+    descriptionKey: "navDescription.reports",
   },
   {
-    title: "Activity Logs",
+    titleKey: "nav.activityLogs",
     href: "/dashboard/activity-logs",
     icon: "activityLogs",
-    description: "Operational visibility and future audit timeline views.",
+    descriptionKey: "navDescription.activityLogs",
   },
   {
-    title: "Settings",
+    titleKey: "nav.settings",
     href: "/dashboard/settings",
     icon: "settings",
-    description: "Workspace configuration and system preferences.",
+    descriptionKey: "navDescription.settings",
   },
 ];
 

@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { FormSubmitButton } from "@/components/dashboard/form-submit-button";
+import { useI18n } from "@/lib/i18n/use-i18n";
 
 type ProductDialogMode = "create" | "edit";
 
@@ -80,6 +81,7 @@ export function ProductFormDialog({
   mode,
   product,
 }: ProductFormDialogProps) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [categoryValue, setCategoryValue] = useState(product?.categoryId ?? "");
   const action = mode === "create" ? createProduct : updateProduct;
@@ -96,17 +98,19 @@ export function ProductFormDialog({
   }, [state.success]);
 
   const title =
-    mode === "create" ? "Create product" : `Edit ${product?.name ?? "product"}`;
+    mode === "create"
+      ? t("dialogs.createProductTitle")
+      : `${t("common.edit")} ${product?.name ?? t("nav.products").toLowerCase()}`;
   const description =
     mode === "create"
-      ? "Add a new product to the warehouse catalog with live stock and pricing fields."
-      : "Update the product details, stock thresholds, pricing, and category assignment.";
+      ? t("dialogs.createProductDescription")
+      : t("dialogs.editProductDescription");
   const submitLabels = useMemo(
     () =>
       mode === "create"
-        ? { idle: "Create product", pending: "Creating..." }
-        : { idle: "Save changes", pending: "Saving..." },
-    [mode]
+        ? { idle: t("dialogs.createProduct"), pending: t("dialogs.creating") }
+        : { idle: t("common.save"), pending: t("dialogs.saving") },
+    [mode, t]
   );
 
   function handleOpenChange(nextOpen: boolean) {
@@ -131,12 +135,12 @@ export function ProductFormDialog({
         {mode === "create" ? (
           <>
             <Plus className="size-4" />
-            Create Product
+            {t("dialogs.createProduct")}
           </>
         ) : (
           <>
             <Pencil className="size-4" />
-            Edit
+            {t("dialogs.edit")}
           </>
         )}
       </DialogTrigger>
@@ -152,14 +156,14 @@ export function ProductFormDialog({
 
           {state.message && !state.success ? (
             <Alert variant="destructive">
-              <AlertTitle>Unable to save product</AlertTitle>
+              <AlertTitle>{t("dialogs.unableToSaveProduct")}</AlertTitle>
               <AlertDescription>{state.message}</AlertDescription>
             </Alert>
           ) : null}
 
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor={`product-category-${mode}`}>Category</Label>
+              <Label htmlFor={`product-category-${mode}`}>{t("dialogs.field.category")}</Label>
               <Select
                 value={categoryValue}
                 onValueChange={(value) => setCategoryValue(value ?? "")}
@@ -169,7 +173,7 @@ export function ProductFormDialog({
                   className="w-full"
                   aria-invalid={Boolean(state.errors?.categoryId?.length)}
                 >
-                  <SelectValue placeholder="Select category" />
+                  <SelectValue placeholder={t("dialogs.field.selectCategory")} />
                 </SelectTrigger>
                 <SelectContent>
                   {categories.map((category) => (
@@ -183,7 +187,7 @@ export function ProductFormDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor={`product-name-${mode}`}>Name</Label>
+              <Label htmlFor={`product-name-${mode}`}>{t("dialogs.field.name")}</Label>
               <Input
                 id={`product-name-${mode}`}
                 name="name"
@@ -194,7 +198,7 @@ export function ProductFormDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor={`product-sku-${mode}`}>SKU</Label>
+              <Label htmlFor={`product-sku-${mode}`}>{t("dialogs.field.sku")}</Label>
               <Input
                 id={`product-sku-${mode}`}
                 name="sku"
@@ -205,7 +209,7 @@ export function ProductFormDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor={`product-unit-${mode}`}>Unit</Label>
+              <Label htmlFor={`product-unit-${mode}`}>{t("dialogs.field.unit")}</Label>
               <Input
                 id={`product-unit-${mode}`}
                 name="unit"
@@ -217,7 +221,7 @@ export function ProductFormDialog({
 
             <div className="space-y-2">
               <Label htmlFor={`product-purchase-price-${mode}`}>
-                Purchase Price
+                {t("dialogs.field.purchasePrice")}
               </Label>
               <Input
                 id={`product-purchase-price-${mode}`}
@@ -233,7 +237,7 @@ export function ProductFormDialog({
 
             <div className="space-y-2">
               <Label htmlFor={`product-selling-price-${mode}`}>
-                Selling Price
+                {t("dialogs.field.sellingPrice")}
               </Label>
               <Input
                 id={`product-selling-price-${mode}`}
@@ -249,7 +253,7 @@ export function ProductFormDialog({
 
             <div className="space-y-2">
               <Label htmlFor={`product-current-stock-${mode}`}>
-                Current Stock
+                {t("dialogs.field.currentStock")}
               </Label>
               <Input
                 id={`product-current-stock-${mode}`}
@@ -265,7 +269,7 @@ export function ProductFormDialog({
 
             <div className="space-y-2">
               <Label htmlFor={`product-minimum-stock-${mode}`}>
-                Minimum Stock
+                {t("dialogs.field.minimumStock")}
               </Label>
               <Input
                 id={`product-minimum-stock-${mode}`}
@@ -280,7 +284,7 @@ export function ProductFormDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor={`product-rack-location-${mode}`}>Rack Location</Label>
+              <Label htmlFor={`product-rack-location-${mode}`}>{t("dialogs.field.rackLocation")}</Label>
               <Input
                 id={`product-rack-location-${mode}`}
                 name="rackLocation"
@@ -290,7 +294,7 @@ export function ProductFormDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor={`product-qr-code-${mode}`}>QR Code</Label>
+              <Label htmlFor={`product-qr-code-${mode}`}>{t("dialogs.field.qrCode")}</Label>
               <Input
                 id={`product-qr-code-${mode}`}
                 name="qrCode"
@@ -301,19 +305,19 @@ export function ProductFormDialog({
             </div>
 
             <div className="space-y-2 md:col-span-2">
-              <Label htmlFor={`product-image-url-${mode}`}>Image URL</Label>
+              <Label htmlFor={`product-image-url-${mode}`}>{t("dialogs.field.imageUrl")}</Label>
               <Input
                 id={`product-image-url-${mode}`}
                 name="imageUrl"
                 defaultValue={product?.imageUrl ?? ""}
-                placeholder="https://example.com/product-image.jpg"
+                placeholder={t("dialogs.placeholder.productImage")}
                 aria-invalid={Boolean(state.errors?.imageUrl?.length)}
               />
               <FieldError errors={state.errors} name="imageUrl" />
             </div>
 
             <div className="space-y-2 md:col-span-2">
-              <Label htmlFor={`product-description-${mode}`}>Description</Label>
+              <Label htmlFor={`product-description-${mode}`}>{t("dialogs.field.description")}</Label>
               <Textarea
                 id={`product-description-${mode}`}
                 name="description"
@@ -329,7 +333,7 @@ export function ProductFormDialog({
               variant="outline"
               onClick={() => setOpen(false)}
             >
-              Cancel
+              {t("common.cancel")}
             </Button>
             <FormSubmitButton
               idleLabel={submitLabels.idle}

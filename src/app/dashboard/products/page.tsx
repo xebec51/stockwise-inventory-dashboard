@@ -5,8 +5,8 @@ import { DataEmptyState } from "@/components/dashboard/data-empty-state";
 import { DeleteConfirmDialog } from "@/components/dashboard/delete-confirm-dialog";
 import { ExportButtons } from "@/components/dashboard/export-buttons";
 import { PageHeader } from "@/components/dashboard/page-header";
-import { ProductQrDialog } from "@/components/dashboard/product-qr-dialog";
 import { ProductFormDialog } from "@/components/dashboard/product-form-dialog";
+import { ProductQrDialog } from "@/components/dashboard/product-qr-dialog";
 import { StockStatusBadge } from "@/components/dashboard/stock-status-badge";
 import {
   Card,
@@ -24,7 +24,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { getCurrentUser } from "@/lib/auth";
-import { formatCurrency, formatStatusLabel } from "@/lib/formatters";
+import { formatCurrency } from "@/lib/formatters";
+import { getServerTranslator } from "@/lib/i18n/server";
+import { translateStockStatus } from "@/lib/i18n/status";
 import { prisma } from "@/lib/prisma";
 import { getStockStatus } from "@/lib/stock";
 
@@ -33,6 +35,7 @@ export const dynamic = "force-dynamic";
 const PRODUCT_TABLE_LIMIT = 50;
 
 export default async function ProductsPage() {
+  const { locale, t } = await getServerTranslator();
   const [currentUser, products, categories] = await Promise.all([
     getCurrentUser(),
     prisma.product.findMany({
@@ -71,9 +74,9 @@ export default async function ProductsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Products"
-        title="Product catalog workspace"
-        description="Live product data now flows from Prisma into the dashboard, including stock context, category assignment, warehouse location, and pricing references."
+        eyebrow={t("products.eyebrow")}
+        title={t("products.title")}
+        description={t("products.description")}
         action={
           <div className="flex flex-wrap justify-end gap-2">
             {currentUser && currentUser.role !== "STAFF" ? (
@@ -85,8 +88,9 @@ export default async function ProductsPage() {
                   category: product.category.name,
                   currentStock: product.currentStock,
                   minimumStock: product.minimumStock,
-                  stockStatus: formatStatusLabel(
-                    getStockStatus(product.currentStock, product.minimumStock)
+                  stockStatus: translateStockStatus(
+                    getStockStatus(product.currentStock, product.minimumStock),
+                    locale
                   ),
                   unit: product.unit,
                   rackLocation: product.rackLocation,
@@ -107,32 +111,31 @@ export default async function ProductsPage() {
       {products.length === 0 ? (
         <DataEmptyState
           icon={PackageSearch}
-          title="No products available yet"
-          description="The product read view is connected and ready, but there are no catalog records in the database to display."
-          hint="Run the demo seed or create product management flows in a later phase to populate this table."
+          title={t("products.emptyTitle")}
+          description={t("products.emptyDescription")}
+          hint={t("products.emptyHint")}
         />
       ) : (
         <Card className="border-border/70 bg-background/80 shadow-sm shadow-black/5">
           <CardHeader>
-            <CardTitle>Product inventory</CardTitle>
+            <CardTitle>{t("products.tableTitle")}</CardTitle>
             <CardDescription>
-              Showing the latest {products.length} product
-              {products.length === 1 ? "" : "s"} from the warehouse catalog.
+              {t("products.tableDescription", { count: products.length })}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Product</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead>Stock</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Unit</TableHead>
-                  <TableHead>Rack</TableHead>
-                  <TableHead className="text-right">Purchase</TableHead>
-                  <TableHead className="text-right">Selling</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>{t("products.product")}</TableHead>
+                  <TableHead>{t("products.category")}</TableHead>
+                  <TableHead>{t("products.stock")}</TableHead>
+                  <TableHead>{t("products.status")}</TableHead>
+                  <TableHead>{t("products.unit")}</TableHead>
+                  <TableHead>{t("products.rack")}</TableHead>
+                  <TableHead className="text-right">{t("products.purchase")}</TableHead>
+                  <TableHead className="text-right">{t("products.selling")}</TableHead>
+                  <TableHead className="text-right">{t("common.actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -157,7 +160,7 @@ export default async function ProductsPage() {
                         <div className="space-y-1">
                           <p className="font-medium">{product.currentStock}</p>
                           <p className="text-xs text-muted-foreground">
-                            Minimum {product.minimumStock}
+                            {t("products.minimum", { count: product.minimumStock })}
                           </p>
                         </div>
                       </TableCell>
@@ -167,10 +170,10 @@ export default async function ProductsPage() {
                       <TableCell>{product.unit}</TableCell>
                       <TableCell>{product.rackLocation ?? "-"}</TableCell>
                       <TableCell className="text-right font-medium">
-                        {formatCurrency(product.purchasePrice.toString())}
+                        {formatCurrency(product.purchasePrice.toString(), { locale })}
                       </TableCell>
                       <TableCell className="text-right font-medium">
-                        {formatCurrency(product.sellingPrice.toString())}
+                        {formatCurrency(product.sellingPrice.toString(), { locale })}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
@@ -204,7 +207,7 @@ export default async function ProductsPage() {
                                 description="Delete this product from the catalog. Stock status remains computed and will disappear with the record."
                                 entityId={product.id}
                                 entityLabel={product.name}
-                                title="Delete product"
+                                title={t("products.deleteProduct")}
                               />
                             </>
                           ) : null}

@@ -1,10 +1,13 @@
+"use client";
+
 import { AlertTriangle, CheckCircle2, CircleOff } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
+import { translateStockStatus } from "@/lib/i18n/status";
+import { useI18n } from "@/lib/i18n/use-i18n";
 import { cn } from "@/lib/utils";
 import {
   type StockStatus,
-  getStockStatusLabel,
 } from "@/lib/stock";
 
 type StockStatusBadgeProps = {
@@ -27,12 +30,13 @@ const statusIcons = {
 } as const;
 
 export function StockStatusBadge({ status }: StockStatusBadgeProps) {
+  const { locale } = useI18n();
   const Icon = statusIcons[status];
 
   return (
     <Badge variant="outline" className={cn("gap-1.5", statusStyles[status])}>
       <Icon className="size-3.5" />
-      {getStockStatusLabel(status)}
+      {translateStockStatus(status, locale)}
     </Badge>
   );
 }

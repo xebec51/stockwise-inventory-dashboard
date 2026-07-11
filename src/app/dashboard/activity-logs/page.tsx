@@ -2,23 +2,26 @@ import { FolderKanban } from "lucide-react";
 
 import { PageHeader } from "@/components/dashboard/page-header";
 import { PlaceholderState } from "@/components/dashboard/placeholder-state";
+import { getServerTranslator } from "@/lib/i18n/server";
 
-export default function ActivityLogsPage() {
+export default async function ActivityLogsPage() {
+  const { t } = await getServerTranslator();
+
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Activity Logs"
-        title="Operational audit timeline"
-        description="Activity logs will later provide a structured view of user actions, module context, and audit-friendly warehouse event history."
+        eyebrow={t("activityLogs.eyebrow")}
+        title={t("activityLogs.title")}
+        description={t("activityLogs.description")}
       />
       <PlaceholderState
         icon={FolderKanban}
-        title="Activity logs module placeholder"
-        description="The UI now reserves an explicit audit surface for future visibility into actions across products, transactions, restocks, and system events."
+        title={t("activityLogs.placeholderTitle")}
+        description={t("activityLogs.placeholderDescription")}
         bullets={[
-          "Future timeline and filter controls can plug in here.",
-          "Supports cross-module visibility for warehouse governance later.",
-          "Aligns directly with the planned activity_logs entity.",
+          t("activityLogs.bullets.one"),
+          t("activityLogs.bullets.two"),
+          t("activityLogs.bullets.three"),
         ]}
       />
     </div>

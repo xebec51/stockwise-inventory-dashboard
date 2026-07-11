@@ -8,24 +8,19 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useI18n } from "@/lib/i18n/use-i18n";
 
 type LoginFormProps = {
   error?: string;
 };
 
-const errorMessages: Record<string, string> = {
-  ACTIVE: "Your account is active and ready to sign in.",
-  PENDING: "This account is still pending approval.",
-  REJECTED: "This account has been rejected and cannot sign in.",
-  INACTIVE: "This account is inactive.",
-  CredentialsSignin: "The email or password you entered is incorrect.",
-  default: "Unable to sign in with those credentials.",
-};
-
 export function LoginForm({ error }: LoginFormProps) {
   const router = useRouter();
+  const { t } = useI18n();
   const [pending, startTransition] = useTransition();
-  const [message, setMessage] = useState(error ? errorMessages[error] ?? errorMessages.default : "");
+  const [message, setMessage] = useState(
+    error ? t(`login.errors.${error}`) : ""
+  );
 
   useEffect(() => {
     router.prefetch("/dashboard");
@@ -45,12 +40,12 @@ export function LoginForm({ error }: LoginFormProps) {
       });
 
       if (!result) {
-        setMessage(errorMessages.default);
+        setMessage(t("login.errors.default"));
         return;
       }
 
       if (result.error) {
-        setMessage(errorMessages[result.error] ?? errorMessages.default);
+        setMessage(t(`login.errors.${result.error}`));
         return;
       }
 
@@ -62,37 +57,37 @@ export function LoginForm({ error }: LoginFormProps) {
     <form action={handleSubmit} className="space-y-4" aria-busy={pending}>
       {message ? (
         <Alert variant="destructive">
-          <AlertTitle>Sign-in blocked</AlertTitle>
+          <AlertTitle>{t("login.blockedTitle")}</AlertTitle>
           <AlertDescription>{message}</AlertDescription>
         </Alert>
       ) : null}
 
       <div className="space-y-2">
-        <Label htmlFor="login-email">Email</Label>
+        <Label htmlFor="login-email">{t("login.email")}</Label>
         <Input
           id="login-email"
           name="email"
           type="email"
-          placeholder="admin@stockwise.demo"
+          placeholder={t("login.emailPlaceholder")}
           disabled={pending}
           required
         />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="login-password">Password</Label>
+        <Label htmlFor="login-password">{t("login.password")}</Label>
         <Input
           id="login-password"
           name="password"
           type="password"
-          placeholder="Password123!"
+          placeholder={t("login.passwordPlaceholder")}
           disabled={pending}
           required
         />
       </div>
 
       <Button type="submit" className="w-full" disabled={pending}>
-        {pending ? "Signing in..." : "Sign in"}
+        {pending ? t("login.signingIn") : t("login.signIn")}
       </Button>
     </form>
   );

@@ -30,6 +30,8 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { type MutationState, initialMutationState } from "@/lib/actions";
+import { useI18n } from "@/lib/i18n/use-i18n";
+import { translateUserStatus } from "@/lib/i18n/status";
 import { supplierStatusOptions } from "@/lib/validations/supplier";
 
 type SupplierDialogMode = "create" | "edit";
@@ -71,6 +73,7 @@ export function SupplierFormDialog({
   mode,
   supplier,
 }: SupplierFormDialogProps) {
+  const { locale, t } = useI18n();
   const [open, setOpen] = useState(false);
   const [statusValue, setStatusValue] = useState<
     (typeof supplierStatusOptions)[number]
@@ -89,17 +92,19 @@ export function SupplierFormDialog({
   }, [state.success]);
 
   const title =
-    mode === "create" ? "Create supplier" : `Edit ${supplier?.companyName ?? "supplier"}`;
+    mode === "create"
+      ? t("dialogs.createSupplierTitle")
+      : `${t("common.edit")} ${supplier?.companyName ?? t("nav.suppliers").toLowerCase()}`;
   const description =
     mode === "create"
-      ? "Create a supplier account and linked profile for restock coordination."
-      : "Update the supplier account details, profile fields, and current status.";
+      ? t("dialogs.createSupplierDescription")
+      : t("dialogs.editSupplierDescription");
   const submitLabels = useMemo(
     () =>
       mode === "create"
-        ? { idle: "Create supplier", pending: "Creating..." }
-        : { idle: "Save changes", pending: "Saving..." },
-    [mode]
+        ? { idle: t("dialogs.createSupplier"), pending: t("dialogs.creating") }
+        : { idle: t("common.save"), pending: t("dialogs.saving") },
+    [mode, t]
   );
 
   function handleOpenChange(nextOpen: boolean) {
@@ -124,12 +129,12 @@ export function SupplierFormDialog({
         {mode === "create" ? (
           <>
             <Plus className="size-4" />
-            Create Supplier
+            {t("dialogs.createSupplier")}
           </>
         ) : (
           <>
             <Pencil className="size-4" />
-            Edit
+            {t("dialogs.edit")}
           </>
         )}
       </DialogTrigger>
@@ -145,14 +150,14 @@ export function SupplierFormDialog({
 
           {state.message && !state.success ? (
             <Alert variant="destructive">
-              <AlertTitle>Unable to save supplier</AlertTitle>
+              <AlertTitle>{t("dialogs.unableToSaveSupplier")}</AlertTitle>
               <AlertDescription>{state.message}</AlertDescription>
             </Alert>
           ) : null}
 
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor={`supplier-name-${mode}`}>Account Name</Label>
+              <Label htmlFor={`supplier-name-${mode}`}>{t("dialogs.field.accountName")}</Label>
               <Input
                 id={`supplier-name-${mode}`}
                 name="name"
@@ -163,7 +168,7 @@ export function SupplierFormDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor={`supplier-email-${mode}`}>Email</Label>
+              <Label htmlFor={`supplier-email-${mode}`}>{t("dialogs.field.email")}</Label>
               <Input
                 id={`supplier-email-${mode}`}
                 name="email"
@@ -176,7 +181,7 @@ export function SupplierFormDialog({
 
             <div className="space-y-2">
               <Label htmlFor={`supplier-password-${mode}`}>
-                {mode === "create" ? "Password" : "Password (optional)"}
+                {mode === "create" ? t("dialogs.field.password") : t("dialogs.field.passwordOptional")}
               </Label>
               <Input
                 id={`supplier-password-${mode}`}
@@ -184,8 +189,8 @@ export function SupplierFormDialog({
                 type="password"
                 placeholder={
                   mode === "create"
-                    ? "Set an initial supplier password"
-                    : "Leave blank to keep the current password"
+                    ? t("dialogs.placeholder.supplierPassword")
+                    : t("dialogs.placeholder.supplierPasswordKeep")
                 }
                 aria-invalid={Boolean(state.errors?.password?.length)}
               />
@@ -193,7 +198,7 @@ export function SupplierFormDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor={`supplier-status-${mode}`}>Status</Label>
+              <Label htmlFor={`supplier-status-${mode}`}>{t("dialogs.field.status")}</Label>
               <Select
                 value={statusValue}
                 onValueChange={(value) =>
@@ -207,12 +212,12 @@ export function SupplierFormDialog({
                   className="w-full"
                   aria-invalid={Boolean(state.errors?.status?.length)}
                 >
-                  <SelectValue placeholder="Select status" />
+                  <SelectValue placeholder={t("dialogs.placeholder.selectStatus")} />
                 </SelectTrigger>
                 <SelectContent>
                   {supplierStatusOptions.map((status) => (
                     <SelectItem key={status} value={status}>
-                      {status.replaceAll("_", " ")}
+                      {translateUserStatus(status, locale)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -221,7 +226,7 @@ export function SupplierFormDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor={`supplier-company-name-${mode}`}>Company Name</Label>
+              <Label htmlFor={`supplier-company-name-${mode}`}>{t("dialogs.field.companyName")}</Label>
               <Input
                 id={`supplier-company-name-${mode}`}
                 name="companyName"
@@ -233,7 +238,7 @@ export function SupplierFormDialog({
 
             <div className="space-y-2">
               <Label htmlFor={`supplier-contact-person-${mode}`}>
-                Contact Person
+                {t("dialogs.field.contactPerson")}
               </Label>
               <Input
                 id={`supplier-contact-person-${mode}`}
@@ -244,7 +249,7 @@ export function SupplierFormDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor={`supplier-phone-${mode}`}>Phone</Label>
+              <Label htmlFor={`supplier-phone-${mode}`}>{t("dialogs.field.phone")}</Label>
               <Input
                 id={`supplier-phone-${mode}`}
                 name="phone"
@@ -254,7 +259,7 @@ export function SupplierFormDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor={`supplier-category-${mode}`}>Supplier Category</Label>
+              <Label htmlFor={`supplier-category-${mode}`}>{t("dialogs.field.supplierCategory")}</Label>
               <Input
                 id={`supplier-category-${mode}`}
                 name="supplierCategory"
@@ -264,7 +269,7 @@ export function SupplierFormDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor={`supplier-bank-account-${mode}`}>Bank Account</Label>
+              <Label htmlFor={`supplier-bank-account-${mode}`}>{t("dialogs.field.bankAccount")}</Label>
               <Input
                 id={`supplier-bank-account-${mode}`}
                 name="bankAccount"
@@ -274,19 +279,19 @@ export function SupplierFormDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor={`supplier-avatar-url-${mode}`}>Avatar URL</Label>
+              <Label htmlFor={`supplier-avatar-url-${mode}`}>{t("dialogs.field.avatarUrl")}</Label>
               <Input
                 id={`supplier-avatar-url-${mode}`}
                 name="avatarUrl"
                 defaultValue={supplier?.avatarUrl ?? ""}
-                placeholder="https://example.com/supplier-avatar.jpg"
+                placeholder={t("dialogs.placeholder.supplierAvatar")}
                 aria-invalid={Boolean(state.errors?.avatarUrl?.length)}
               />
               <FieldError errors={state.errors} name="avatarUrl" />
             </div>
 
             <div className="space-y-2 md:col-span-2">
-              <Label htmlFor={`supplier-address-${mode}`}>Address</Label>
+              <Label htmlFor={`supplier-address-${mode}`}>{t("dialogs.field.address")}</Label>
               <Textarea
                 id={`supplier-address-${mode}`}
                 name="address"
@@ -302,7 +307,7 @@ export function SupplierFormDialog({
               variant="outline"
               onClick={() => setOpen(false)}
             >
-              Cancel
+              {t("common.cancel")}
             </Button>
             <FormSubmitButton
               idleLabel={submitLabels.idle}

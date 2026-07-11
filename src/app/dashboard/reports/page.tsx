@@ -10,12 +10,15 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { formatDateTime } from "@/lib/formatters";
+import { getServerTranslator } from "@/lib/i18n/server";
+import { translateStockStatus, translateTransactionStatus } from "@/lib/i18n/status";
 import { prisma } from "@/lib/prisma";
 import { getStockStatus } from "@/lib/stock";
 
 export const dynamic = "force-dynamic";
 
 export default async function ReportsPage() {
+  const { locale, t } = await getServerTranslator();
   const [products, transactions] = await Promise.all([
     prisma.product.findMany({
       select: {
@@ -78,7 +81,10 @@ export default async function ReportsPage() {
     category: product.category.name,
     currentStock: product.currentStock,
     minimumStock: product.minimumStock,
-    stockStatus: getStockStatus(product.currentStock, product.minimumStock),
+    stockStatus: translateStockStatus(
+      getStockStatus(product.currentStock, product.minimumStock),
+      locale
+    ),
     unit: product.unit,
     rackLocation: product.rackLocation ?? "",
     purchasePrice: product.purchasePrice.toString(),
@@ -89,8 +95,8 @@ export default async function ReportsPage() {
   const transactionRows = transactions.flatMap((transaction) =>
     transaction.items.map((item) => ({
       transactionNumber: transaction.transactionNumber,
-      type: transaction.type,
-      status: transaction.status,
+      type: translateTransactionStatus(transaction.type, locale),
+      status: translateTransactionStatus(transaction.status, locale),
       transactionDate: transaction.transactionDate.toISOString(),
       creator: transaction.creator.name,
       approver: transaction.approver?.name ?? "",
@@ -107,9 +113,9 @@ export default async function ReportsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Reports"
-        title="Export and analytics workspace"
-        description="Reporting now includes real CSV/XLSX export entry points for warehouse products and transaction history using the current Prisma-backed dataset."
+        eyebrow={t("reports.eyebrow")}
+        title={t("reports.title")}
+        description={t("reports.description")}
       />
 
       <div className="grid gap-4 xl:grid-cols-2">
@@ -120,9 +126,9 @@ export default async function ReportsPage() {
                 <Package className="size-5" />
               </div>
               <div>
-                <CardTitle>Product export</CardTitle>
+                <CardTitle>{t("reports.productExport")}</CardTitle>
                 <CardDescription>
-                  Catalog, stock thresholds, pricing, rack locations, and QR values.
+                  {t("reports.productExportDescription")}
                 </CardDescription>
               </div>
             </div>
@@ -134,7 +140,7 @@ export default async function ReportsPage() {
               sheetName="Products"
             />
             <p className="text-sm text-muted-foreground">
-              {productRows.length} product row{productRows.length === 1 ? "" : "s"} ready for spreadsheet export.
+              {t("reports.productRowsReady", { count: productRows.length })}
             </p>
           </CardContent>
         </Card>
@@ -146,9 +152,9 @@ export default async function ReportsPage() {
                 <ReceiptText className="size-5" />
               </div>
               <div>
-                <CardTitle>Transaction export</CardTitle>
+                <CardTitle>{t("reports.transactionExport")}</CardTitle>
                 <CardDescription>
-                  Flattened movement history with item quantities and stock audit fields.
+                  {t("reports.transactionExportDescription")}
                 </CardDescription>
               </div>
             </div>
@@ -160,8 +166,7 @@ export default async function ReportsPage() {
               sheetName="Transactions"
             />
             <p className="text-sm text-muted-foreground">
-              {transactionRows.length} transaction line
-              {transactionRows.length === 1 ? "" : "s"} ready for spreadsheet export.
+              {t("reports.transactionRowsReady", { count: transactionRows.length })}
             </p>
           </CardContent>
         </Card>
@@ -174,9 +179,9 @@ export default async function ReportsPage() {
               <FileBarChart2 className="size-5" />
             </div>
             <div>
-              <CardTitle>Recent export context</CardTitle>
+              <CardTitle>{t("reports.recentContext")}</CardTitle>
               <CardDescription>
-                Quick visibility into the newest transaction records that would be included in the export.
+                {t("reports.recentContextDescription")}
               </CardDescription>
             </div>
           </div>
@@ -189,14 +194,15 @@ export default async function ReportsPage() {
             >
               <p className="font-medium">{transaction.transactionNumber}</p>
               <p className="text-sm text-muted-foreground">
-                {transaction.type} • {transaction.status} •{" "}
-                {formatDateTime(transaction.transactionDate)}
+                {translateTransactionStatus(transaction.type, locale)} •{" "}
+                {translateTransactionStatus(transaction.status, locale)} •{" "}
+                {formatDateTime(transaction.transactionDate, { locale })}
               </p>
             </div>
           ))}
           {transactions.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              No transaction records are available for export yet.
+              {t("reports.noTransactionExport")}
             </p>
           ) : null}
         </CardContent>

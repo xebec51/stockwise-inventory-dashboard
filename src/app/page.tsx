@@ -10,48 +10,48 @@ import {
   Warehouse,
 } from "lucide-react";
 
+import { LanguageSwitcher } from "@/components/language-switcher";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { getServerTranslator } from "@/lib/i18n/server";
 import { cn } from "@/lib/utils";
 
 const highlights = [
   {
-    title: "Inventory control",
-    description:
-      "Track products, stock movement, and warehouse readiness through a structured dashboard foundation.",
+    titleKey: "landing.highlights.inventoryControl",
+    descriptionKey: "landing.highlights.inventoryControlDescription",
     icon: Warehouse,
   },
   {
-    title: "Approval workflows",
-    description:
-      "Prepare space for manager approvals, transaction review states, and auditable stock movement flows.",
+    titleKey: "landing.highlights.approvalWorkflows",
+    descriptionKey: "landing.highlights.approvalWorkflowsDescription",
     icon: ClipboardCheck,
   },
   {
-    title: "Supplier operations",
-    description:
-      "Model supplier coordination, restock planning, and future ratings in a single operational workspace.",
+    titleKey: "landing.highlights.supplierOperations",
+    descriptionKey: "landing.highlights.supplierOperationsDescription",
     icon: Factory,
   },
   {
-    title: "Reporting layer",
-    description:
-      "Lay the groundwork for exportable reports, QR labels, and portfolio-grade analytics surfaces.",
+    titleKey: "landing.highlights.reportingLayer",
+    descriptionKey: "landing.highlights.reportingLayerDescription",
     icon: FileSpreadsheet,
   },
 ];
 
 const modules = [
-  "Dashboard analytics",
-  "Product and category catalog",
-  "Incoming and outgoing transactions",
-  "Restock order coordination",
-  "Suppliers and ratings",
-  "QR labels and reports",
+  "landing.modules.analytics",
+  "landing.modules.catalog",
+  "landing.modules.transactions",
+  "landing.modules.restocks",
+  "landing.modules.suppliers",
+  "landing.modules.qrAndReports",
 ];
 
-export default function Home() {
+export default async function Home() {
+  const { t } = await getServerTranslator();
+
   return (
     <main className="relative overflow-hidden">
       <div className="absolute inset-x-0 top-0 -z-10 h-[32rem] bg-[radial-gradient(circle_at_top,rgba(14,116,144,0.16),transparent_55%),linear-gradient(180deg,rgba(255,255,255,0.96),rgba(255,255,255,0.78))] dark:bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.12),transparent_45%),linear-gradient(180deg,rgba(9,9,11,0.96),rgba(9,9,11,0.82))]" />
@@ -65,18 +65,21 @@ export default function Home() {
             <div>
               <p className="text-sm font-semibold tracking-tight">StockWise</p>
               <p className="text-xs text-muted-foreground">
-                Inventory intelligence dashboard
+                {t("landing.tagline")}
               </p>
             </div>
           </div>
 
-          <div className="hidden items-center gap-3 md:flex">
-            <Badge variant="outline">Portfolio-grade UI foundation</Badge>
+          <div className="flex items-center gap-3">
+            <div className="hidden items-center gap-3 md:flex">
+              <Badge variant="outline">{t("landing.eyebrow")}</Badge>
+            </div>
+            <LanguageSwitcher />
             <Link
               href="/dashboard"
               className={cn(buttonVariants({ variant: "default", size: "sm" }))}
             >
-              Open Dashboard
+              {t("landing.openDashboard")}
             </Link>
           </div>
         </header>
@@ -86,16 +89,13 @@ export default function Home() {
             <div className="space-y-4">
               <Badge variant="secondary" className="gap-1.5 px-3 py-1">
                 <ShieldCheck className="size-3.5" />
-                Warehouse SaaS foundation
+                {t("landing.badge")}
               </Badge>
               <h1 className="max-w-3xl text-4xl font-semibold tracking-tight text-balance sm:text-5xl lg:text-6xl">
-                Modern inventory intelligence for warehouse operations.
+                {t("landing.title")}
               </h1>
               <p className="max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
-                StockWise is designed to help teams manage products, stock
-                movement, supplier coordination, restock workflows, and
-                analytics through a polished dashboard experience that can grow
-                into a full warehouse platform.
+                {t("landing.description")}
               </p>
             </div>
 
@@ -104,14 +104,14 @@ export default function Home() {
                 href="/dashboard"
                 className={cn(buttonVariants({ variant: "default", size: "lg" }))}
               >
-                Explore dashboard
+                {t("landing.exploreDashboard")}
                 <ArrowRight className="size-4" />
               </Link>
               <Link
                 href="/dashboard/products"
                 className={cn(buttonVariants({ variant: "outline", size: "lg" }))}
               >
-                View module structure
+                {t("landing.viewModuleStructure")}
               </Link>
             </div>
 
@@ -121,17 +121,17 @@ export default function Home() {
 
                 return (
                   <Card
-                    key={item.title}
+                    key={item.titleKey}
                     className="border-border/70 bg-background/80 shadow-sm shadow-black/5 backdrop-blur"
                   >
                     <CardHeader className="space-y-3">
                       <div className="flex size-10 items-center justify-center rounded-2xl bg-primary/8 text-primary ring-1 ring-primary/10">
                         <Icon className="size-5" />
                       </div>
-                      <CardTitle>{item.title}</CardTitle>
+                      <CardTitle>{t(item.titleKey)}</CardTitle>
                     </CardHeader>
                     <CardContent className="text-sm leading-6 text-muted-foreground">
-                      {item.description}
+                      {t(item.descriptionKey)}
                     </CardContent>
                   </Card>
                 );
@@ -146,10 +146,10 @@ export default function Home() {
                 <div className="flex items-center justify-between gap-4">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">
-                      Platform scope
+                      {t("landing.platformScope")}
                     </p>
                     <CardTitle className="mt-1 text-xl">
-                      StockWise foundations
+                      {t("landing.foundations")}
                     </CardTitle>
                   </div>
                   <div className="flex size-12 items-center justify-center rounded-2xl bg-secondary text-secondary-foreground">
@@ -164,19 +164,16 @@ export default function Home() {
                       key={module}
                       className="flex items-center justify-between rounded-2xl border border-border/70 bg-muted/40 px-4 py-3"
                     >
-                      <span className="text-sm font-medium">{module}</span>
-                      <Badge variant="outline">Planned</Badge>
+                      <span className="text-sm font-medium">{t(module)}</span>
+                      <Badge variant="outline">{t("landing.planned")}</Badge>
                     </div>
                   ))}
                 </div>
 
                 <div className="rounded-3xl border border-border/70 bg-[linear-gradient(135deg,rgba(14,116,144,0.12),transparent)] p-5 dark:bg-[linear-gradient(135deg,rgba(34,211,238,0.12),transparent)]">
-                  <p className="text-sm font-medium">Built for phased delivery</p>
+                  <p className="text-sm font-medium">{t("landing.phasedDelivery")}</p>
                   <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                    This phase focuses on the app shell, navigation, and
-                    presentation layer so later work can plug in auth, Prisma,
-                    workflows, analytics, and exports without reworking the UI
-                    foundation.
+                    {t("landing.phasedDeliveryDescription")}
                   </p>
                 </div>
               </CardContent>

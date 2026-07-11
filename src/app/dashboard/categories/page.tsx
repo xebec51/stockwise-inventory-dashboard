@@ -21,6 +21,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatDate } from "@/lib/formatters";
+import { getServerTranslator } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -28,6 +29,7 @@ export const dynamic = "force-dynamic";
 const CATEGORY_TABLE_LIMIT = 50;
 
 export default async function CategoriesPage() {
+  const { locale, t } = await getServerTranslator();
   const categories = await prisma.category.findMany({
     take: CATEGORY_TABLE_LIMIT,
     select: {
@@ -49,39 +51,37 @@ export default async function CategoriesPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Categories"
-        title="Inventory classification layer"
-        description="Category records are now loaded from Prisma to show taxonomy structure, slugs, descriptions, and live product counts."
+        eyebrow={t("categories.eyebrow")}
+        title={t("categories.title")}
+        description={t("categories.description")}
         action={<CategoryFormDialog mode="create" />}
       />
 
       {categories.length === 0 ? (
         <DataEmptyState
           icon={FolderSearch}
-          title="No categories available yet"
-          description="The category read view is connected and ready, but the database does not contain any category records yet."
-          hint="Run the demo seed or add category management later to populate this area."
+          title={t("categories.emptyTitle")}
+          description={t("categories.emptyDescription")}
+          hint={t("categories.emptyHint")}
         />
       ) : (
         <Card className="border-border/70 bg-background/80 shadow-sm shadow-black/5">
           <CardHeader>
-            <CardTitle>Category catalog</CardTitle>
+            <CardTitle>{t("categories.tableTitle")}</CardTitle>
             <CardDescription>
-              Showing {categories.length} categor
-              {categories.length === 1 ? "y" : "ies"} that currently structure
-              the product catalog.
+              {t("categories.tableDescription", { count: categories.length })}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Category</TableHead>
-                  <TableHead>Slug</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Products</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>{t("categories.eyebrow")}</TableHead>
+                  <TableHead>{t("categories.slug")}</TableHead>
+                  <TableHead>{t("categories.descriptionLabel")}</TableHead>
+                  <TableHead>{t("categories.products")}</TableHead>
+                  <TableHead>{t("categories.created")}</TableHead>
+                  <TableHead className="text-right">{t("common.actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -90,10 +90,10 @@ export default async function CategoriesPage() {
                     <TableCell className="font-medium">{category.name}</TableCell>
                     <TableCell>{category.slug}</TableCell>
                     <TableCell className="min-w-72 whitespace-normal text-sm leading-6 text-muted-foreground">
-                      {category.description ?? "No description provided yet."}
+                      {category.description ?? t("common.noDescription")}
                     </TableCell>
                     <TableCell>{category._count.products}</TableCell>
-                    <TableCell>{formatDate(category.createdAt)}</TableCell>
+                    <TableCell>{formatDate(category.createdAt, { locale })}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         <CategoryFormDialog
@@ -111,7 +111,7 @@ export default async function CategoriesPage() {
                           description="Delete this category only if it no longer has any products assigned to it."
                           entityId={category.id}
                           entityLabel={category.name}
-                          title="Delete category"
+                          title={t("categories.deleteCategory")}
                         />
                       </div>
                     </TableCell>

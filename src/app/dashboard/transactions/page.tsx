@@ -28,7 +28,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { getCurrentUser } from "@/lib/auth";
-import { formatDateTime, formatStatusLabel } from "@/lib/formatters";
+import { formatDateTime } from "@/lib/formatters";
+import { getServerTranslator } from "@/lib/i18n/server";
+import { translateRole, translateTransactionStatus } from "@/lib/i18n/status";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -54,6 +56,7 @@ function getTypeBadgeVariant(type: string) {
 }
 
 export default async function TransactionsPage() {
+  const { locale, t } = await getServerTranslator();
   const currentUser = await getCurrentUser();
   const transactionWhere =
     currentUser?.role === "STAFF"
@@ -162,9 +165,9 @@ export default async function TransactionsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Transactions"
-        title="Stock movement workflow area"
-        description="Incoming and outgoing transactions now run through a pending approval workflow with stock-safe updates, item-level audit fields, and Prisma-backed operational history."
+        eyebrow={t("transactions.eyebrow")}
+        title={t("transactions.title")}
+        description={t("transactions.description")}
         action={
           <div className="flex flex-wrap justify-end gap-2">
             <ExportButtons
@@ -172,8 +175,8 @@ export default async function TransactionsPage() {
               rows={transactions.flatMap((transaction) =>
                 transaction.items.map((item) => ({
                   transactionNumber: transaction.transactionNumber,
-                  type: transaction.type,
-                  status: transaction.status,
+                  type: translateTransactionStatus(transaction.type, locale),
+                  status: translateTransactionStatus(transaction.status, locale),
                   transactionDate: transaction.transactionDate.toISOString(),
                   creator: transaction.creator.name,
                   approver: transaction.approver?.name ?? "",
@@ -199,8 +202,8 @@ export default async function TransactionsPage() {
         <Card className="border-border/70 bg-background/80 shadow-sm shadow-black/5">
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <div className="space-y-1">
-              <CardTitle className="text-sm font-medium">Pending Review</CardTitle>
-              <CardDescription>Awaiting manager or admin action</CardDescription>
+              <CardTitle className="text-sm font-medium">{t("transactions.pendingReview")}</CardTitle>
+              <CardDescription>{t("transactions.pendingReviewDescription")}</CardDescription>
             </div>
             <Clock3 className="size-5 text-muted-foreground" />
           </CardHeader>
@@ -214,8 +217,8 @@ export default async function TransactionsPage() {
         <Card className="border-border/70 bg-background/80 shadow-sm shadow-black/5">
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <div className="space-y-1">
-              <CardTitle className="text-sm font-medium">Approved / Done</CardTitle>
-              <CardDescription>Stock-applied movements</CardDescription>
+              <CardTitle className="text-sm font-medium">{t("transactions.approvedDone")}</CardTitle>
+              <CardDescription>{t("transactions.approvedDoneDescription")}</CardDescription>
             </div>
             <CircleCheckBig className="size-5 text-muted-foreground" />
           </CardHeader>
@@ -229,8 +232,8 @@ export default async function TransactionsPage() {
         <Card className="border-border/70 bg-background/80 shadow-sm shadow-black/5">
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <div className="space-y-1">
-              <CardTitle className="text-sm font-medium">Rejected</CardTitle>
-              <CardDescription>Requests that kept stock unchanged</CardDescription>
+              <CardTitle className="text-sm font-medium">{t("transactions.rejected")}</CardTitle>
+              <CardDescription>{t("transactions.rejectedDescription")}</CardDescription>
             </div>
             <ArrowUpFromLine className="size-5 text-muted-foreground" />
           </CardHeader>
@@ -244,8 +247,8 @@ export default async function TransactionsPage() {
         <Card className="border-border/70 bg-background/80 shadow-sm shadow-black/5">
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <div className="space-y-1">
-              <CardTitle className="text-sm font-medium">Item Lines</CardTitle>
-              <CardDescription>Tracked across all transactions</CardDescription>
+              <CardTitle className="text-sm font-medium">{t("transactions.itemLines")}</CardTitle>
+              <CardDescription>{t("transactions.itemLinesDescription")}</CardDescription>
             </div>
             <ArrowDownToLine className="size-5 text-muted-foreground" />
           </CardHeader>
@@ -260,31 +263,29 @@ export default async function TransactionsPage() {
       {transactions.length === 0 ? (
         <DataEmptyState
           icon={ClipboardList}
-          title="No transactions recorded yet"
-          description="The transaction workflow is connected, but there are no stock movement records in the database to review."
-          hint="Create the first pending incoming or outgoing transaction to start the approval flow."
+          title={t("transactions.emptyTitle")}
+          description={t("transactions.emptyDescription")}
+          hint={t("transactions.emptyHint")}
         />
       ) : (
         <Card className="border-border/70 bg-background/80 shadow-sm shadow-black/5">
           <CardHeader>
-            <CardTitle>Transaction queue</CardTitle>
+            <CardTitle>{t("transactions.tableTitle")}</CardTitle>
             <CardDescription>
-              Showing the latest {transactions.length} stock movement
-              {transactions.length === 1 ? "" : "s"} with item-level audit
-              records and approval state.
+              {t("transactions.tableDescription", { count: transactions.length })}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Transaction</TableHead>
-                  <TableHead>Workflow</TableHead>
-                  <TableHead>Owner</TableHead>
-                  <TableHead>Items</TableHead>
-                  <TableHead>Notes</TableHead>
-                  <TableHead>Reviewed</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>{t("transactions.transaction")}</TableHead>
+                  <TableHead>{t("transactions.workflow")}</TableHead>
+                  <TableHead>{t("transactions.owner")}</TableHead>
+                  <TableHead>{t("transactions.items")}</TableHead>
+                  <TableHead>{t("transactions.notes")}</TableHead>
+                  <TableHead>{t("transactions.reviewed")}</TableHead>
+                  <TableHead className="text-right">{t("common.actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -297,39 +298,39 @@ export default async function TransactionsPage() {
                             {transaction.transactionNumber}
                           </p>
                           <Badge variant={getTypeBadgeVariant(transaction.type)}>
-                            {formatStatusLabel(transaction.type)}
+                            {translateTransactionStatus(transaction.type, locale)}
                           </Badge>
                           <Badge variant={getStatusBadgeVariant(transaction.status)}>
-                            {formatStatusLabel(transaction.status)}
+                            {translateTransactionStatus(transaction.status, locale)}
                           </Badge>
                         </div>
                         <p className="text-xs text-muted-foreground">
-                          {formatDateTime(transaction.transactionDate)}
+                          {formatDateTime(transaction.transactionDate, { locale })}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {transaction.destination ?? "No destination recorded"}
+                          {transaction.destination ?? t("common.noDestination")}
                         </p>
                       </div>
                     </TableCell>
                     <TableCell className="min-w-52">
                       <p className="font-medium">
                         {transaction.type === "INCOMING"
-                          ? "Incoming receipt"
-                          : "Outgoing shipment"}
+                          ? t("transactions.incomingReceipt")
+                          : t("transactions.outgoingShipment")}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Pending transactions do not change stock until approval.
+                        {t("transactions.pendingNoStockChange")}
                       </p>
                     </TableCell>
                     <TableCell className="min-w-52">
                       <div className="space-y-1">
                         <p className="font-medium">
-                          {transaction.creator.name} ({transaction.creator.role})
+                          {transaction.creator.name} ({translateRole(transaction.creator.role, locale)})
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {transaction.approver
-                            ? `${transaction.approver.name} (${transaction.approver.role})`
-                            : "Awaiting approver"}
+                            ? `${transaction.approver.name} (${translateRole(transaction.approver.role, locale)})`
+                            : t("transactions.awaitingApprover")}
                         </p>
                       </div>
                     </TableCell>
@@ -344,20 +345,24 @@ export default async function TransactionsPage() {
                               {item.product.name} ({item.product.sku})
                             </p>
                             <p className="text-xs text-muted-foreground">
-                              Qty {item.quantity} {item.product.unit} | Audit{" "}
-                              {item.stockBefore} -&gt; {item.stockAfter}
+                              {t("transactions.quantityAudit", {
+                                quantity: item.quantity,
+                                unit: item.product.unit,
+                                before: item.stockBefore,
+                                after: item.stockAfter,
+                              })}
                             </p>
                           </div>
                         ))}
                       </div>
                     </TableCell>
                     <TableCell className="min-w-56 whitespace-normal text-sm leading-6 text-muted-foreground">
-                      {transaction.notes ?? "No notes recorded."}
+                      {transaction.notes ?? t("common.noNotes")}
                     </TableCell>
                     <TableCell>
                       {transaction.approvedAt
-                        ? formatDateTime(transaction.approvedAt)
-                        : "Not reviewed yet"}
+                        ? formatDateTime(transaction.approvedAt, { locale })
+                        : t("transactions.notReviewedYet")}
                     </TableCell>
                     <TableCell className="text-right">
                       {transaction.status === "PENDING" && canReviewTransactions && currentUser ? (
@@ -384,8 +389,8 @@ export default async function TransactionsPage() {
                       ) : (
                         <span className="text-sm text-muted-foreground">
                           {transaction.status === "PENDING"
-                            ? "Awaiting manager review"
-                            : "Review complete"}
+                            ? t("transactions.awaitingManagerReview")
+                            : t("transactions.reviewComplete")}
                         </span>
                       )}
                     </TableCell>

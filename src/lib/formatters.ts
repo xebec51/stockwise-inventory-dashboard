@@ -1,61 +1,48 @@
+import { defaultLocale, type Locale } from "@/lib/i18n/locales";
+import {
+  formatCurrencyByLocale,
+  formatDateByLocale,
+  formatDateTimeByLocale,
+} from "@/lib/i18n/formatters";
+
 type CurrencyFormatOptions = {
   currency?: string;
-  locale?: string;
+  locale?: string | Locale;
 };
 
 type DateFormatOptions = {
-  locale?: string;
+  locale?: string | Locale;
   options?: Intl.DateTimeFormatOptions;
 };
 
 export function formatCurrency(
   value: number | string,
-  { currency = "USD", locale = "en-US" }: CurrencyFormatOptions = {}
+  { currency, locale = defaultLocale }: CurrencyFormatOptions = {}
 ) {
-  const amount = typeof value === "string" ? Number(value) : value;
-
-  if (!Number.isFinite(amount)) {
-    return "-";
-  }
-
-  return new Intl.NumberFormat(locale, {
-    style: "currency",
+  return formatCurrencyByLocale(value, {
     currency,
-    maximumFractionDigits: 2,
-  }).format(amount);
+    locale: locale === "id-ID" ? "id" : locale === "en-US" ? "en" : (locale as Locale),
+  });
 }
 
 export function formatDate(
   value: Date | string,
-  { locale = "en-US", options }: DateFormatOptions = {}
+  { locale = defaultLocale, options }: DateFormatOptions = {}
 ) {
-  const date = value instanceof Date ? value : new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return "-";
-  }
-
-  return new Intl.DateTimeFormat(locale, {
-    dateStyle: "medium",
-    ...options,
-  }).format(date);
+  return formatDateByLocale(value, {
+    locale: locale === "id-ID" ? "id" : locale === "en-US" ? "en" : (locale as Locale),
+    options,
+  });
 }
 
 export function formatDateTime(
   value: Date | string,
-  { locale = "en-US", options }: DateFormatOptions = {}
+  { locale = defaultLocale, options }: DateFormatOptions = {}
 ) {
-  const date = value instanceof Date ? value : new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return "-";
-  }
-
-  return new Intl.DateTimeFormat(locale, {
-    dateStyle: "medium",
-    timeStyle: "short",
-    ...options,
-  }).format(date);
+  return formatDateTimeByLocale(value, {
+    locale: locale === "id-ID" ? "id" : locale === "en-US" ? "en" : (locale as Locale),
+    options,
+  });
 }
 
 export function formatStatusLabel(value: string) {

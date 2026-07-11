@@ -19,7 +19,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { formatCurrency, formatDateTime, formatStatusLabel } from "@/lib/formatters";
+import { formatCurrency, formatDateTime } from "@/lib/formatters";
+import { getServerTranslator } from "@/lib/i18n/server";
+import {
+  translateStockStatus,
+  translateTransactionStatus,
+} from "@/lib/i18n/status";
 import { prisma } from "@/lib/prisma";
 import { getStockStatus } from "@/lib/stock";
 import { cn } from "@/lib/utils";
@@ -44,74 +49,74 @@ function getStatusBadgeVariant(status: string) {
 }
 
 export default async function DashboardPage() {
+  const { locale, t } = await getServerTranslator();
   const [
     products,
     movementTransactions,
     recentTransactions,
     pendingTransactionCount,
     activeRestockOrderCount,
-  ] =
-    await Promise.all([
-      prisma.product.findMany({
-        select: {
-          id: true,
-          name: true,
-          currentStock: true,
-          minimumStock: true,
-          purchasePrice: true,
-          category: {
-            select: {
-              name: true,
-            },
+  ] = await Promise.all([
+    prisma.product.findMany({
+      select: {
+        id: true,
+        name: true,
+        currentStock: true,
+        minimumStock: true,
+        purchasePrice: true,
+        category: {
+          select: {
+            name: true,
           },
         },
-      }),
-      prisma.transaction.findMany({
-        where: {
-          status: {
-            in: ["APPROVED", "COMPLETED"],
+      },
+    }),
+    prisma.transaction.findMany({
+      where: {
+        status: {
+          in: ["APPROVED", "COMPLETED"],
+        },
+      },
+      select: {
+        type: true,
+        transactionDate: true,
+        items: {
+          select: {
+            quantity: true,
           },
         },
-        select: {
-          type: true,
-          transactionDate: true,
-          items: {
-            select: {
-              quantity: true,
-            },
+      },
+    }),
+    prisma.transaction.findMany({
+      take: RECENT_TRANSACTION_LIMIT,
+      orderBy: [{ transactionDate: "desc" }, { createdAt: "desc" }],
+      select: {
+        id: true,
+        transactionNumber: true,
+        type: true,
+        status: true,
+        destination: true,
+        transactionDate: true,
+        creator: {
+          select: {
+            name: true,
           },
         },
-      }),
-      prisma.transaction.findMany({
-        take: RECENT_TRANSACTION_LIMIT,
-        orderBy: [{ transactionDate: "desc" }, { createdAt: "desc" }],
-        select: {
-          id: true,
-          transactionNumber: true,
-          type: true,
-          status: true,
-          destination: true,
-          transactionDate: true,
-          creator: {
-            select: {
-              name: true,
-            },
-          },
+      },
+    }),
+    prisma.transaction.count({
+      where: {
+        status: "PENDING",
+      },
+    }),
+    prisma.restockOrder.count({
+      where: {
+        status: {
+          in: ["PENDING", "CONFIRMED", "IN_TRANSIT"],
         },
-      }),
-      prisma.transaction.count({
-        where: {
-          status: "PENDING",
-        },
-      }),
-      prisma.restockOrder.count({
-        where: {
-          status: {
-            in: ["PENDING", "CONFIRMED", "IN_TRANSIT"],
-          },
-        },
-      }),
-    ]);
+      },
+    }),
+  ]);
 
   const inventoryByCategoryMap = new Map<string, number>();
   const lowStockCandidates: typeof products = [];
@@ -121,8 +126,7 @@ export default async function DashboardPage() {
 
   products.forEach((product) => {
     const status = getStockStatus(product.currentStock, product.minimumStock);
-    const currentValue =
-      inventoryByCategoryMap.get(product.category.name) ?? 0;
+    const currentValue = inventoryByCategoryMap.get(product.category.name) ?? 0;
     const productValue = Number(product.purchasePrice) * product.currentStock;
 
     totalInventoryValue += productValue;
@@ -153,44 +157,44 @@ export default async function DashboardPage() {
   const movementMap = new Map<string, { label: string; incoming: number; outgoing: number }>();
 
   movementTransactions.forEach((transaction) => {
-      const monthKey = new Intl.DateTimeFormat("en-US", {
-        month: "short",
-        year: "2-digit",
-      }).format(transaction.transactionDate);
-      const quantity = transaction.items.reduce(
-        (total, item) => total + item.quantity,
-        0
-      );
+    const monthKey = new Intl.DateTimeFormat(locale === "id" ? "id-ID" : "en-US", {
+      month: "short",
+      year: "2-digit",
+    }).format(transaction.transactionDate);
+    const quantity = transaction.items.reduce(
+      (total, item) => total + item.quantity,
+      0
+    );
 
-      const entry = movementMap.get(monthKey) ?? {
-        label: monthKey,
-        incoming: 0,
-        outgoing: 0,
-      };
+    const entry = movementMap.get(monthKey) ?? {
+      label: monthKey,
+      incoming: 0,
+      outgoing: 0,
+    };
 
-      if (transaction.type === "INCOMING") {
-        entry.incoming += quantity;
-      } else {
-        entry.outgoing += quantity;
-      }
+    if (transaction.type === "INCOMING") {
+      entry.incoming += quantity;
+    } else {
+      entry.outgoing += quantity;
+    }
 
-      movementMap.set(monthKey, entry);
-    });
+    movementMap.set(monthKey, entry);
+  });
 
   const movementData = [...movementMap.values()];
 
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Overview"
-        title="Warehouse command center"
-        description="Live inventory, replenishment, and approval signals now roll up into the StockWise dashboard from the Prisma-backed warehouse dataset."
+        eyebrow={t("dashboard.overview")}
+        title={t("dashboard.commandCenter")}
+        description={t("dashboard.commandDescription")}
         action={
           <Link
             href="/dashboard/transactions"
             className={cn(buttonVariants({ variant: "default", size: "sm" }))}
           >
-            Review transactions
+            {t("dashboard.reviewTransactions")}
             <ArrowRight className="size-4" />
           </Link>
         }
@@ -200,8 +204,8 @@ export default async function DashboardPage() {
         <Card className="border-border/70 bg-background/80 shadow-sm shadow-black/5">
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <div className="space-y-1">
-              <CardTitle className="text-sm font-medium">Total Products</CardTitle>
-              <CardDescription>Catalog items in the warehouse</CardDescription>
+              <CardTitle className="text-sm font-medium">{t("dashboard.totalProducts")}</CardTitle>
+              <CardDescription>{t("dashboard.totalProductsDescription")}</CardDescription>
             </div>
             <Boxes className="size-5 text-muted-foreground" />
           </CardHeader>
@@ -213,16 +217,14 @@ export default async function DashboardPage() {
         <Card className="border-border/70 bg-background/80 shadow-sm shadow-black/5">
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <div className="space-y-1">
-              <CardTitle className="text-sm font-medium">
-                Inventory Value
-              </CardTitle>
-              <CardDescription>Based on purchase price and stock</CardDescription>
+              <CardTitle className="text-sm font-medium">{t("dashboard.inventoryValue")}</CardTitle>
+              <CardDescription>{t("dashboard.inventoryValueDescription")}</CardDescription>
             </div>
             <Wallet className="size-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-semibold tracking-tight">
-              {formatCurrency(totalInventoryValue)}
+              {formatCurrency(totalInventoryValue, { locale })}
             </p>
           </CardContent>
         </Card>
@@ -230,15 +232,15 @@ export default async function DashboardPage() {
         <Card className="border-border/70 bg-background/80 shadow-sm shadow-black/5">
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <div className="space-y-1">
-              <CardTitle className="text-sm font-medium">Low Stock</CardTitle>
-              <CardDescription>Products at or below minimum stock</CardDescription>
+              <CardTitle className="text-sm font-medium">{t("dashboard.lowStock")}</CardTitle>
+              <CardDescription>{t("dashboard.lowStockDescription")}</CardDescription>
             </div>
             <AlertTriangle className="size-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-semibold tracking-tight">{lowStockCount}</p>
             <p className="text-sm text-muted-foreground">
-              {outOfStockCount} currently out of stock
+              {t("dashboard.outOfStockNow", { count: outOfStockCount })}
             </p>
           </CardContent>
         </Card>
@@ -246,10 +248,8 @@ export default async function DashboardPage() {
         <Card className="border-border/70 bg-background/80 shadow-sm shadow-black/5">
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <div className="space-y-1">
-              <CardTitle className="text-sm font-medium">
-                Pending Transactions
-              </CardTitle>
-              <CardDescription>Awaiting approval workflow</CardDescription>
+              <CardTitle className="text-sm font-medium">{t("dashboard.pendingTransactions")}</CardTitle>
+              <CardDescription>{t("dashboard.pendingTransactionsDescription")}</CardDescription>
             </div>
             <ClipboardList className="size-5 text-muted-foreground" />
           </CardHeader>
@@ -263,10 +263,8 @@ export default async function DashboardPage() {
         <Card className="border-border/70 bg-background/80 shadow-sm shadow-black/5">
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <div className="space-y-1">
-              <CardTitle className="text-sm font-medium">
-                Active Restocks
-              </CardTitle>
-              <CardDescription>Open supplier replenishment orders</CardDescription>
+              <CardTitle className="text-sm font-medium">{t("dashboard.activeRestocks")}</CardTitle>
+              <CardDescription>{t("dashboard.activeRestocksDescription")}</CardDescription>
             </div>
             <PackageCheck className="size-5 text-muted-foreground" />
           </CardHeader>
@@ -279,10 +277,8 @@ export default async function DashboardPage() {
 
         <Card className="border-border/70 bg-background/80 shadow-sm shadow-black/5">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-sm font-medium">
-              Stock Pressure
-            </CardTitle>
-            <CardDescription>Immediate product attention needed</CardDescription>
+            <CardTitle className="text-sm font-medium">{t("dashboard.stockPressure")}</CardTitle>
+            <CardDescription>{t("dashboard.stockPressureDescription")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
             {lowStockProducts.slice(0, 3).map((product) => (
@@ -307,7 +303,7 @@ export default async function DashboardPage() {
             ))}
             {lowStockProducts.length === 0 ? (
               <p className="text-sm text-muted-foreground">
-                No low-stock products right now.
+                {t("dashboard.noLowStock")}
               </p>
             ) : null}
           </CardContent>
@@ -322,9 +318,9 @@ export default async function DashboardPage() {
       <section className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
         <Card className="border-border/70 bg-background/80 shadow-sm shadow-black/5">
           <CardHeader>
-            <CardTitle>Recent transactions</CardTitle>
+            <CardTitle>{t("dashboard.recentTransactions")}</CardTitle>
             <CardDescription>
-              The latest warehouse movements across incoming and outgoing flow.
+              {t("dashboard.recentTransactionsDescription")}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -336,17 +332,18 @@ export default async function DashboardPage() {
                 <div className="flex flex-wrap items-center gap-2">
                   <p className="font-medium">{transaction.transactionNumber}</p>
                   <Badge variant="outline">
-                    {formatStatusLabel(transaction.type)}
+                    {translateTransactionStatus(transaction.type, locale)}
                   </Badge>
                   <Badge variant={getStatusBadgeVariant(transaction.status)}>
-                    {formatStatusLabel(transaction.status)}
+                    {translateTransactionStatus(transaction.status, locale)}
                   </Badge>
                 </div>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  {transaction.creator.name} • {formatDateTime(transaction.transactionDate)}
+                  {transaction.creator.name} •{" "}
+                  {formatDateTime(transaction.transactionDate, { locale })}
                 </p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  {transaction.destination ?? "No destination recorded"}
+                  {transaction.destination ?? t("common.noDestination")}
                 </p>
               </div>
             ))}
@@ -355,9 +352,9 @@ export default async function DashboardPage() {
 
         <Card className="border-border/70 bg-background/80 shadow-sm shadow-black/5">
           <CardHeader>
-            <CardTitle>Low stock products</CardTitle>
+            <CardTitle>{t("dashboard.lowStockProducts")}</CardTitle>
             <CardDescription>
-              Products at risk of stockout based on current thresholds.
+              {t("dashboard.lowStockProductsDescription")}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -384,18 +381,21 @@ export default async function DashboardPage() {
                         status === "OUT_OF_STOCK" ? "destructive" : "secondary"
                       }
                     >
-                      {formatStatusLabel(status)}
+                      {translateStockStatus(status, locale)}
                     </Badge>
                   </div>
                   <p className="mt-2 text-sm text-muted-foreground">
-                    Current stock {product.currentStock} • Minimum {product.minimumStock}
+                    {t("dashboard.currentStockMinimum", {
+                      current: product.currentStock,
+                      minimum: product.minimumStock,
+                    })}
                   </p>
                 </div>
               );
             })}
             {lowStockProducts.length === 0 ? (
               <p className="text-sm text-muted-foreground">
-                Inventory thresholds look healthy across the catalog.
+                {t("dashboard.healthyThresholds")}
               </p>
             ) : null}
           </CardContent>

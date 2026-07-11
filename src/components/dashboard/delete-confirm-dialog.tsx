@@ -19,6 +19,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { FormSubmitButton } from "@/components/dashboard/form-submit-button";
+import { useI18n } from "@/lib/i18n/use-i18n";
 
 type DeleteConfirmDialogProps = {
   action: (
@@ -38,6 +39,7 @@ export function DeleteConfirmDialog({
   entityLabel,
   title,
 }: DeleteConfirmDialogProps) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [state, formAction] = useActionState(action, initialMutationState);
 
@@ -57,7 +59,7 @@ export function DeleteConfirmDialog({
         render={<Button variant="ghost" size="sm" className="text-destructive" />}
       >
         <Trash2 className="size-4" />
-        Delete
+        {t("dialogs.delete")}
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
@@ -70,16 +72,17 @@ export function DeleteConfirmDialog({
 
           <Alert variant="destructive">
             <AlertTriangle className="size-4" />
-            <AlertTitle>Delete confirmation</AlertTitle>
+            <AlertTitle>{t("dialogs.deleteConfirmation")}</AlertTitle>
             <AlertDescription>
-              This action will remove <strong>{entityLabel}</strong> from the
-              current workspace. This cannot be undone.
+              {t("dialogs.deleteWarning", { entity: entityLabel })}
             </AlertDescription>
           </Alert>
 
           {state.message ? (
             <Alert variant={state.success ? "default" : "destructive"}>
-              <AlertTitle>{state.success ? "Completed" : "Action blocked"}</AlertTitle>
+              <AlertTitle>
+                {state.success ? t("dialogs.completed") : t("dialogs.actionBlocked")}
+              </AlertTitle>
               <AlertDescription>{state.message}</AlertDescription>
             </Alert>
           ) : null}
@@ -90,11 +93,11 @@ export function DeleteConfirmDialog({
               variant="outline"
               onClick={() => setOpen(false)}
             >
-              Cancel
+              {t("common.cancel")}
             </Button>
             <FormSubmitButton
-              idleLabel="Delete"
-              pendingLabel="Deleting..."
+              idleLabel={t("dialogs.delete")}
+              pendingLabel={t("dialogs.deleting")}
               variant="destructive"
             />
           </DialogFooter>

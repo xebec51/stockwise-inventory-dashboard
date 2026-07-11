@@ -28,12 +28,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { getCurrentUser } from "@/lib/auth";
-import {
-  formatCurrency,
-  formatDate,
-  formatDateTime,
-  formatStatusLabel,
-} from "@/lib/formatters";
+import { formatCurrency, formatDate, formatDateTime } from "@/lib/formatters";
+import { getServerTranslator } from "@/lib/i18n/server";
+import { translateRestockStatus, translateRole } from "@/lib/i18n/status";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -57,6 +54,7 @@ function getStatusBadgeVariant(status: string) {
 }
 
 export default async function RestockOrdersPage() {
+  const { locale, t } = await getServerTranslator();
   const currentUser = await getCurrentUser();
   const restockOrderWhere =
     currentUser?.role === "SUPPLIER"
@@ -200,9 +198,9 @@ export default async function RestockOrdersPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Restock Orders"
-        title="Supplier replenishment coordination"
-        description="Restock orders now move from creation through supplier confirmation, delivery transit, receipt, linked incoming transactions, and optional post-delivery supplier ratings."
+        eyebrow={t("restockOrders.eyebrow")}
+        title={t("restockOrders.title")}
+        description={t("restockOrders.description")}
         action={
           canCreateRestockOrders && currentUser ? (
             <RestockOrderFormDialog
@@ -222,8 +220,8 @@ export default async function RestockOrdersPage() {
         <Card className="border-border/70 bg-background/80 shadow-sm shadow-black/5">
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <div className="space-y-1">
-              <CardTitle className="text-sm font-medium">Pending</CardTitle>
-              <CardDescription>Waiting on supplier response</CardDescription>
+              <CardTitle className="text-sm font-medium">{t("restockOrders.pending")}</CardTitle>
+              <CardDescription>{t("restockOrders.pendingDescription")}</CardDescription>
             </div>
             <TimerReset className="size-5 text-muted-foreground" />
           </CardHeader>
@@ -237,8 +235,8 @@ export default async function RestockOrdersPage() {
         <Card className="border-border/70 bg-background/80 shadow-sm shadow-black/5">
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <div className="space-y-1">
-              <CardTitle className="text-sm font-medium">In Transit</CardTitle>
-              <CardDescription>Confirmed supplier deliveries en route</CardDescription>
+              <CardTitle className="text-sm font-medium">{t("restockOrders.inTransit")}</CardTitle>
+              <CardDescription>{t("restockOrders.inTransitDescription")}</CardDescription>
             </div>
             <Truck className="size-5 text-muted-foreground" />
           </CardHeader>
@@ -252,8 +250,8 @@ export default async function RestockOrdersPage() {
         <Card className="border-border/70 bg-background/80 shadow-sm shadow-black/5">
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <div className="space-y-1">
-              <CardTitle className="text-sm font-medium">Received</CardTitle>
-              <CardDescription>Orders linked into inventory updates</CardDescription>
+              <CardTitle className="text-sm font-medium">{t("restockOrders.received")}</CardTitle>
+              <CardDescription>{t("restockOrders.receivedDescription")}</CardDescription>
             </div>
             <PackageCheck className="size-5 text-muted-foreground" />
           </CardHeader>
@@ -267,8 +265,8 @@ export default async function RestockOrdersPage() {
         <Card className="border-border/70 bg-background/80 shadow-sm shadow-black/5">
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <div className="space-y-1">
-              <CardTitle className="text-sm font-medium">Rejected</CardTitle>
-              <CardDescription>Supplier orders that did not proceed</CardDescription>
+              <CardTitle className="text-sm font-medium">{t("restockOrders.rejected")}</CardTitle>
+              <CardDescription>{t("restockOrders.rejectedDescription")}</CardDescription>
             </div>
             <CircleOff className="size-5 text-muted-foreground" />
           </CardHeader>
@@ -283,30 +281,28 @@ export default async function RestockOrdersPage() {
       {restockOrders.length === 0 ? (
         <DataEmptyState
           icon={Truck}
-          title="No restock orders recorded yet"
-          description="The restock workflow is connected, but the database does not contain any supplier replenishment records yet."
-          hint="Create the first purchase order to kick off confirmation, transit, receipt, and supplier rating flows."
+          title={t("restockOrders.emptyTitle")}
+          description={t("restockOrders.emptyDescription")}
+          hint={t("restockOrders.emptyHint")}
         />
       ) : (
         <Card className="border-border/70 bg-background/80 shadow-sm shadow-black/5">
           <CardHeader>
-            <CardTitle>Restock pipeline</CardTitle>
+            <CardTitle>{t("restockOrders.tableTitle")}</CardTitle>
             <CardDescription>
-              Showing the latest {restockOrders.length} supplier replenishment
-              {restockOrders.length === 1 ? "" : "s"} tracked through delivery and
-              warehouse receipt.
+              {t("restockOrders.tableDescription", { count: restockOrders.length })}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Order</TableHead>
-                  <TableHead>Supplier</TableHead>
-                  <TableHead>Items</TableHead>
-                  <TableHead>Timeline</TableHead>
-                  <TableHead>Rating</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>{t("restockOrders.order")}</TableHead>
+                  <TableHead>{t("restockOrders.supplier")}</TableHead>
+                  <TableHead>{t("restockOrders.items")}</TableHead>
+                  <TableHead>{t("restockOrders.timeline")}</TableHead>
+                  <TableHead>{t("restockOrders.rating")}</TableHead>
+                  <TableHead className="text-right">{t("common.actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -317,7 +313,7 @@ export default async function RestockOrdersPage() {
                         <div className="flex flex-wrap items-center gap-2">
                           <p className="font-medium">{order.poNumber}</p>
                           <Badge variant={getStatusBadgeVariant(order.status)}>
-                            {formatStatusLabel(order.status)}
+                            {translateRestockStatus(order.status, locale)}
                           </Badge>
                           {order.sourceTransaction ? (
                             <Badge variant="outline">
@@ -326,10 +322,11 @@ export default async function RestockOrdersPage() {
                           ) : null}
                         </div>
                         <p className="text-xs text-muted-foreground">
-                          Manager: {order.manager.name} ({order.manager.role})
+                          {t("restockOrders.manager")}: {order.manager.name} (
+                          {translateRole(order.manager.role, locale)})
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {order.notes ?? "No notes recorded."}
+                          {order.notes ?? t("common.noNotes")}
                         </p>
                       </div>
                     </TableCell>
@@ -354,7 +351,7 @@ export default async function RestockOrdersPage() {
                             <p className="text-xs text-muted-foreground">
                               Qty {item.quantity} {item.product.unit}
                               {item.estimatedPrice
-                                ? ` | ${formatCurrency(item.estimatedPrice.toString())}`
+                                ? ` | ${formatCurrency(item.estimatedPrice.toString(), { locale })}`
                                 : ""}
                             </p>
                           </div>
@@ -363,24 +360,24 @@ export default async function RestockOrdersPage() {
                     </TableCell>
                     <TableCell className="min-w-56">
                       <div className="space-y-1 text-sm">
-                        <p>Ordered: {formatDate(order.orderDate)}</p>
+                        <p>{t("restockOrders.ordered")}: {formatDate(order.orderDate, { locale })}</p>
                         <p>
-                          ETA:{" "}
+                          {t("restockOrders.eta")}:{" "}
                           {order.expectedDeliveryDate
-                            ? formatDate(order.expectedDeliveryDate)
-                            : "Not set"}
+                            ? formatDate(order.expectedDeliveryDate, { locale })
+                            : t("common.notSet")}
                         </p>
                         <p>
-                          Confirmed:{" "}
+                          {t("restockOrders.confirmed")}:{" "}
                           {order.confirmedAt
-                            ? formatDateTime(order.confirmedAt)
-                            : "Pending"}
+                            ? formatDateTime(order.confirmedAt, { locale })
+                            : t("restockOrders.pendingShort")}
                         </p>
                         <p>
-                          Received:{" "}
+                          {t("restockOrders.received")}:{" "}
                           {order.receivedAt
-                            ? formatDateTime(order.receivedAt)
-                            : "Not received"}
+                            ? formatDateTime(order.receivedAt, { locale })
+                            : t("restockOrders.notReceived")}
                         </p>
                       </div>
                     </TableCell>
@@ -391,20 +388,20 @@ export default async function RestockOrdersPage() {
                             {order.supplierRating.rating} / 5
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            {order.supplierRating.feedback ?? "No feedback provided."}
+                            {order.supplierRating.feedback ?? t("restockOrders.noFeedback")}
                           </p>
                         </div>
                       ) : order.status === "RECEIVED" && canCreateRestockOrders ? (
                         <SupplierRatingFormDialog
                           managerId={order.manager.id}
-                          managerLabel={`${order.manager.name} (${order.manager.role})`}
+                          managerLabel={`${order.manager.name} (${translateRole(order.manager.role, locale)})`}
                           poNumber={order.poNumber}
                           restockOrderId={order.id}
                           supplierName={order.supplier.companyName}
                         />
                       ) : (
                         <span className="text-sm text-muted-foreground">
-                          Available after receipt
+                          {t("restockOrders.availableAfterReceipt")}
                         </span>
                       )}
                     </TableCell>
@@ -415,7 +412,7 @@ export default async function RestockOrdersPage() {
                             <>
                               <RestockOrderStatusDialog
                                 actorId={order.supplier.user.id}
-                                actorLabel={`${order.supplier.user.name} (Supplier)`}
+                                actorLabel={`${order.supplier.user.name} (${t("roles.SUPPLIER")})`}
                                 description="The assigned supplier can confirm the order and begin delivery planning."
                                 mode="confirm"
                                 orderId={order.id}
@@ -423,7 +420,7 @@ export default async function RestockOrdersPage() {
                               />
                               <RestockOrderStatusDialog
                                 actorId={order.supplier.user.id}
-                                actorLabel={`${order.supplier.user.name} (Supplier)`}
+                                actorLabel={`${order.supplier.user.name} (${t("roles.SUPPLIER")})`}
                                 description="Reject the order if the supplier cannot fulfill this purchase request."
                                 mode="reject"
                                 orderId={order.id}
@@ -432,7 +429,7 @@ export default async function RestockOrdersPage() {
                             </>
                           ) : (
                             <span className="text-sm text-muted-foreground">
-                              Awaiting supplier action
+                              {t("restockOrders.awaitingSupplierAction")}
                             </span>
                           )
                         ) : null}
@@ -441,7 +438,7 @@ export default async function RestockOrdersPage() {
                           isSupplier ? (
                             <RestockOrderStatusDialog
                               actorId={order.supplier.user.id}
-                              actorLabel={`${order.supplier.user.name} (Supplier)`}
+                              actorLabel={`${order.supplier.user.name} (${t("roles.SUPPLIER")})`}
                               description="Mark the confirmed order in transit once the shipment has left the supplier."
                               mode="in_transit"
                               orderId={order.id}
@@ -449,7 +446,7 @@ export default async function RestockOrdersPage() {
                             />
                           ) : (
                             <span className="text-sm text-muted-foreground">
-                              Awaiting supplier dispatch
+                              {t("restockOrders.awaitingSupplierDispatch")}
                             </span>
                           )
                         ) : null}
@@ -458,7 +455,7 @@ export default async function RestockOrdersPage() {
                           canCreateRestockOrders ? (
                             <RestockOrderStatusDialog
                               actorId={order.manager.id}
-                              actorLabel={`${order.manager.name} (${order.manager.role})`}
+                              actorLabel={`${order.manager.name} (${translateRole(order.manager.role, locale)})`}
                               description="Mark the order received to create the linked incoming transaction and update product stock."
                               mode="receive"
                               orderId={order.id}
@@ -466,7 +463,7 @@ export default async function RestockOrdersPage() {
                             />
                           ) : (
                             <span className="text-sm text-muted-foreground">
-                              Awaiting warehouse receipt
+                              {t("restockOrders.awaitingWarehouseReceipt")}
                             </span>
                           )
                         ) : null}
@@ -474,7 +471,7 @@ export default async function RestockOrdersPage() {
                         {["RECEIVED", "REJECTED"].includes(order.status) ? (
                           <span className="text-sm text-muted-foreground">
                             <CircleCheckBig className="mr-1 inline size-4" />
-                            Workflow complete
+                            {t("restockOrders.workflowComplete")}
                           </span>
                         ) : null}
                       </div>

@@ -23,7 +23,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { getCurrentUser } from "@/lib/auth";
-import { formatDate, formatStatusLabel } from "@/lib/formatters";
+import { formatDate } from "@/lib/formatters";
+import { getServerTranslator } from "@/lib/i18n/server";
+import { translateUserStatus } from "@/lib/i18n/status";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -45,6 +47,7 @@ function getStatusBadgeVariant(status: string) {
 }
 
 export default async function SuppliersPage() {
+  const { locale, t } = await getServerTranslator();
   const currentUser = await getCurrentUser();
   const [
     suppliers,
@@ -53,87 +56,86 @@ export default async function SuppliersPage() {
     pendingCount,
     activeRestockCount,
     ratingsAggregate,
-  ] =
-    await Promise.all([
-      prisma.supplier.findMany({
-        take: SUPPLIER_TABLE_LIMIT,
-        select: {
-          id: true,
-          companyName: true,
-          address: true,
-          contactPerson: true,
-          phone: true,
-          supplierCategory: true,
-          bankAccount: true,
-          createdAt: true,
-          user: {
-            select: {
-              name: true,
-              email: true,
-              status: true,
-              avatarUrl: true,
-            },
-          },
-          _count: {
-            select: {
-              restockOrders: true,
-              supplierRatings: true,
-            },
-          },
-          restockOrders: {
-            take: 1,
-            select: {
-              poNumber: true,
-            },
-            orderBy: {
-              orderDate: "desc",
-            },
-          },
-          supplierRatings: {
-            select: {
-              rating: true,
-            },
+  ] = await Promise.all([
+    prisma.supplier.findMany({
+      take: SUPPLIER_TABLE_LIMIT,
+      select: {
+        id: true,
+        companyName: true,
+        address: true,
+        contactPerson: true,
+        phone: true,
+        supplierCategory: true,
+        bankAccount: true,
+        createdAt: true,
+        user: {
+          select: {
+            name: true,
+            email: true,
+            status: true,
+            avatarUrl: true,
           },
         },
-        orderBy: [{ companyName: "asc" }],
-      }),
-      prisma.supplier.count(),
-      prisma.supplier.count({
-        where: {
-          user: {
-            status: "ACTIVE",
+        _count: {
+          select: {
+            restockOrders: true,
+            supplierRatings: true,
           },
         },
-      }),
-      prisma.supplier.count({
-        where: {
-          user: {
-            status: "PENDING",
+        restockOrders: {
+          take: 1,
+          select: {
+            poNumber: true,
+          },
+          orderBy: {
+            orderDate: "desc",
           },
         },
-      }),
-      prisma.restockOrder.count({
-        where: {
-          status: {
-            in: ["PENDING", "CONFIRMED", "IN_TRANSIT"],
+        supplierRatings: {
+          select: {
+            rating: true,
           },
         },
-      }),
-      prisma.supplierRating.aggregate({
-        _avg: {
-          rating: true,
+      },
+      orderBy: [{ companyName: "asc" }],
+    }),
+    prisma.supplier.count(),
+    prisma.supplier.count({
+      where: {
+        user: {
+          status: "ACTIVE",
         },
-      }),
-    ]);
+      },
+    }),
+    prisma.supplier.count({
+      where: {
+        user: {
+          status: "PENDING",
+        },
+      },
+    }),
+    prisma.restockOrder.count({
+      where: {
+        status: {
+          in: ["PENDING", "CONFIRMED", "IN_TRANSIT"],
+        },
+      },
+    }),
+    prisma.supplierRating.aggregate({
+      _avg: {
+        rating: true,
+      },
+    }),
+  ]);
 
   const averageRating = ratingsAggregate._avg.rating;
 
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Suppliers"
-        title="Supplier relationship workspace"
-        description="Supplier profiles now load from Prisma with linked account status, contact data, restock activity, and rating context for the next workflow phases."
+        eyebrow={t("suppliers.eyebrow")}
+        title={t("suppliers.title")}
+        description={t("suppliers.description")}
         action={currentUser?.role === "ADMIN" ? <SupplierFormDialog mode="create" /> : null}
       />
 
@@ -142,9 +144,9 @@ export default async function SuppliersPage() {
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <div className="space-y-1">
               <CardTitle className="text-sm font-medium">
-                Supplier Accounts
+                {t("suppliers.accounts")}
               </CardTitle>
-              <CardDescription>Total linked supplier profiles</CardDescription>
+              <CardDescription>{t("suppliers.accountsDescription")}</CardDescription>
             </div>
             <UsersRound className="size-5 text-muted-foreground" />
           </CardHeader>
@@ -158,8 +160,8 @@ export default async function SuppliersPage() {
         <Card className="border-border/70 bg-background/80 shadow-sm shadow-black/5">
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <div className="space-y-1">
-              <CardTitle className="text-sm font-medium">Active</CardTitle>
-              <CardDescription>Accounts ready for live coordination</CardDescription>
+              <CardTitle className="text-sm font-medium">{t("suppliers.active")}</CardTitle>
+              <CardDescription>{t("suppliers.activeDescription")}</CardDescription>
             </div>
             <Building2 className="size-5 text-muted-foreground" />
           </CardHeader>
@@ -168,7 +170,7 @@ export default async function SuppliersPage() {
               {activeCount}
             </p>
             <p className="text-sm text-muted-foreground">
-              {pendingCount} pending review
+              {t("suppliers.pendingReview", { count: pendingCount })}
             </p>
           </CardContent>
         </Card>
@@ -176,8 +178,8 @@ export default async function SuppliersPage() {
         <Card className="border-border/70 bg-background/80 shadow-sm shadow-black/5">
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <div className="space-y-1">
-              <CardTitle className="text-sm font-medium">Open Restocks</CardTitle>
-              <CardDescription>Pending, confirmed, or in transit</CardDescription>
+              <CardTitle className="text-sm font-medium">{t("suppliers.openRestocks")}</CardTitle>
+              <CardDescription>{t("suppliers.openRestocksDescription")}</CardDescription>
             </div>
             <PackageCheck className="size-5 text-muted-foreground" />
           </CardHeader>
@@ -191,8 +193,8 @@ export default async function SuppliersPage() {
         <Card className="border-border/70 bg-background/80 shadow-sm shadow-black/5">
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <div className="space-y-1">
-              <CardTitle className="text-sm font-medium">Avg. Rating</CardTitle>
-              <CardDescription>Supplier feedback from received orders</CardDescription>
+              <CardTitle className="text-sm font-medium">{t("suppliers.averageRating")}</CardTitle>
+              <CardDescription>{t("suppliers.averageRatingDescription")}</CardDescription>
             </div>
             <Star className="size-5 text-muted-foreground" />
           </CardHeader>
@@ -207,31 +209,29 @@ export default async function SuppliersPage() {
       {suppliers.length === 0 ? (
         <DataEmptyState
           icon={UsersRound}
-          title="No suppliers available yet"
-          description="Supplier management is connected, but there are no supplier profiles in the database to display."
-          hint="Create the first supplier account here to prepare for restock workflows and supplier-facing status changes."
+          title={t("suppliers.emptyTitle")}
+          description={t("suppliers.emptyDescription")}
+          hint={t("suppliers.emptyHint")}
         />
       ) : (
         <Card className="border-border/70 bg-background/80 shadow-sm shadow-black/5">
           <CardHeader>
-            <CardTitle>Supplier directory</CardTitle>
+            <CardTitle>{t("suppliers.tableTitle")}</CardTitle>
             <CardDescription>
-              Showing {suppliers.length} supplier
-              {suppliers.length === 1 ? "" : "s"} connected to user accounts and
-              future restock coordination.
+              {t("suppliers.tableDescription", { count: suppliers.length })}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Supplier</TableHead>
-                  <TableHead>Account</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead>Restocks</TableHead>
-                  <TableHead>Rating</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>{t("suppliers.supplier")}</TableHead>
+                  <TableHead>{t("suppliers.account")}</TableHead>
+                  <TableHead>{t("suppliers.category")}</TableHead>
+                  <TableHead>{t("suppliers.restocks")}</TableHead>
+                  <TableHead>{t("suppliers.rating")}</TableHead>
+                  <TableHead>{t("suppliers.created")}</TableHead>
+                  <TableHead className="text-right">{t("common.actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -264,10 +264,10 @@ export default async function SuppliersPage() {
                               {supplier.contactPerson ?? supplier.user.name}
                             </p>
                             <p className="text-xs text-muted-foreground">
-                              {supplier.phone ?? "No phone provided"}
+                              {supplier.phone ?? t("suppliers.noPhone")}
                             </p>
                             <p className="text-xs text-muted-foreground">
-                              {supplier.address ?? "No address provided"}
+                              {supplier.address ?? t("suppliers.noAddress")}
                             </p>
                           </div>
                         </div>
@@ -281,7 +281,7 @@ export default async function SuppliersPage() {
                             </p>
                           </div>
                           <Badge variant={getStatusBadgeVariant(supplier.user.status)}>
-                            {formatStatusLabel(supplier.user.status)}
+                            {translateUserStatus(supplier.user.status, locale)}
                           </Badge>
                         </div>
                       </TableCell>
@@ -289,20 +289,22 @@ export default async function SuppliersPage() {
                         <div className="space-y-1">
                           <p>{supplier.supplierCategory ?? "-"}</p>
                           <p className="text-xs text-muted-foreground">
-                            {supplier.bankAccount ?? "No bank account recorded"}
+                            {supplier.bankAccount ?? t("suppliers.noBankAccount")}
                           </p>
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="space-y-1">
                           <p className="font-medium">
-                            {supplier._count.restockOrders} total
+                            {t("suppliers.total", { count: supplier._count.restockOrders })}
                           </p>
                           <p className="text-xs text-muted-foreground">
                             {supplier._count.restockOrders > 0
-                              ? "Recent order tracked"
-                              : "No orders yet"}
-                            {lastOrder ? ` • Last ${lastOrder.poNumber}` : ""}
+                              ? t("suppliers.recentOrderTracked")
+                              : t("suppliers.noOrdersYet")}
+                            {lastOrder
+                              ? ` • ${t("suppliers.lastOrder", { poNumber: lastOrder.poNumber })}`
+                              : ""}
                           </p>
                         </div>
                       </TableCell>
@@ -311,15 +313,16 @@ export default async function SuppliersPage() {
                           <p className="font-medium">
                             {averageSupplierRating
                               ? `${averageSupplierRating.toFixed(1)} / 5`
-                              : "No ratings yet"}
+                              : t("suppliers.noRatingsYet")}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            {supplier._count.supplierRatings} recorded review
-                            {supplier._count.supplierRatings === 1 ? "" : "s"}
+                            {t("suppliers.recordedReviews", {
+                              count: supplier._count.supplierRatings,
+                            })}
                           </p>
                         </div>
                       </TableCell>
-                      <TableCell>{formatDate(supplier.createdAt)}</TableCell>
+                      <TableCell>{formatDate(supplier.createdAt, { locale })}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           {currentUser?.role === "ADMIN" ? (
@@ -345,12 +348,12 @@ export default async function SuppliersPage() {
                                 description="Delete this supplier only when it has no operational history, restock references, or retained audit data."
                                 entityId={supplier.id}
                                 entityLabel={supplier.companyName}
-                                title="Delete supplier"
+                                title={t("suppliers.deleteSupplier")}
                               />
                             </>
                           ) : (
                             <span className="text-sm text-muted-foreground">
-                              Read only
+                              {t("common.readOnly")}
                             </span>
                           )}
                         </div>

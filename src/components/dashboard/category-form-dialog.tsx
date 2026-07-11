@@ -26,6 +26,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { FormSubmitButton } from "@/components/dashboard/form-submit-button";
+import { useI18n } from "@/lib/i18n/use-i18n";
 
 type CategoryDialogMode = "create" | "edit";
 
@@ -60,6 +61,7 @@ export function CategoryFormDialog({
   category,
   mode,
 }: CategoryFormDialogProps) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const action = mode === "create" ? createCategory : updateCategory;
   const [state, formAction] = useActionState(action, initialMutationState);
@@ -75,17 +77,19 @@ export function CategoryFormDialog({
   }, [state.success]);
 
   const title =
-    mode === "create" ? "Create category" : `Edit ${category?.name ?? "category"}`;
+    mode === "create"
+      ? t("dialogs.createCategoryTitle")
+      : `${t("common.edit")} ${category?.name ?? t("nav.categories").toLowerCase()}`;
   const description =
     mode === "create"
-      ? "Add a new category to organize inventory and product groupings."
-      : "Update the category details shown throughout the product catalog.";
+      ? t("dialogs.createCategoryDescription")
+      : t("dialogs.editCategoryDescription");
   const submitLabels = useMemo(
     () =>
       mode === "create"
-        ? { idle: "Create category", pending: "Creating..." }
-        : { idle: "Save changes", pending: "Saving..." },
-    [mode]
+        ? { idle: t("dialogs.createCategory"), pending: t("dialogs.creating") }
+        : { idle: t("common.save"), pending: t("dialogs.saving") },
+    [mode, t]
   );
 
   return (
@@ -102,12 +106,12 @@ export function CategoryFormDialog({
         {mode === "create" ? (
           <>
             <Plus className="size-4" />
-            Create Category
+            {t("dialogs.createCategory")}
           </>
         ) : (
           <>
             <Pencil className="size-4" />
-            Edit
+            {t("dialogs.edit")}
           </>
         )}
       </DialogTrigger>
@@ -122,13 +126,13 @@ export function CategoryFormDialog({
 
           {state.message && !state.success ? (
             <Alert variant="destructive">
-              <AlertTitle>Unable to save category</AlertTitle>
+              <AlertTitle>{t("dialogs.unableToSaveCategory")}</AlertTitle>
               <AlertDescription>{state.message}</AlertDescription>
             </Alert>
           ) : null}
 
           <div className="space-y-2">
-            <Label htmlFor={`category-name-${mode}`}>Name</Label>
+            <Label htmlFor={`category-name-${mode}`}>{t("dialogs.field.name")}</Label>
             <Input
               id={`category-name-${mode}`}
               name="name"
@@ -139,7 +143,7 @@ export function CategoryFormDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor={`category-slug-${mode}`}>Slug</Label>
+            <Label htmlFor={`category-slug-${mode}`}>{t("dialogs.field.slug")}</Label>
             <Input
               id={`category-slug-${mode}`}
               name="slug"
@@ -150,7 +154,7 @@ export function CategoryFormDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor={`category-description-${mode}`}>Description</Label>
+            <Label htmlFor={`category-description-${mode}`}>{t("dialogs.field.description")}</Label>
             <Textarea
               id={`category-description-${mode}`}
               name="description"
@@ -160,12 +164,12 @@ export function CategoryFormDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor={`category-image-url-${mode}`}>Image URL</Label>
+            <Label htmlFor={`category-image-url-${mode}`}>{t("dialogs.field.imageUrl")}</Label>
             <Input
               id={`category-image-url-${mode}`}
               name="imageUrl"
               defaultValue={category?.imageUrl ?? ""}
-              placeholder="https://example.com/category-image.jpg"
+              placeholder={t("dialogs.placeholder.categoryImage")}
               aria-invalid={Boolean(state.errors?.imageUrl?.length)}
             />
             <FieldError errors={state.errors} name="imageUrl" />
@@ -177,7 +181,7 @@ export function CategoryFormDialog({
               variant="outline"
               onClick={() => setOpen(false)}
             >
-              Cancel
+              {t("common.cancel")}
             </Button>
             <FormSubmitButton
               idleLabel={submitLabels.idle}

@@ -8,6 +8,7 @@ import {
   dashboardIconMap,
 } from "@/config/dashboard-nav";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useI18n } from "@/lib/i18n/use-i18n";
 import { cn } from "@/lib/utils";
 
 type NavItemProps = {
@@ -30,8 +31,10 @@ export function NavItem({
   onNavigate,
 }: NavItemProps) {
   const pathname = usePathname();
+  const { t } = useI18n();
   const active = isActivePath(pathname, item.href);
   const Icon = dashboardIconMap[item.icon];
+  const label = t(item.titleKey);
 
   const link = (
     <Link
@@ -47,7 +50,7 @@ export function NavItem({
       aria-current={active ? "page" : undefined}
     >
       <Icon className="size-4 shrink-0" />
-      {!collapsed && <span>{item.title}</span>}
+      {!collapsed && <span>{label}</span>}
     </Link>
   );
 
@@ -58,7 +61,7 @@ export function NavItem({
   return (
     <Tooltip>
       <TooltipTrigger render={link} />
-      <TooltipContent side="right">{item.title}</TooltipContent>
+      <TooltipContent side="right">{label}</TooltipContent>
     </Tooltip>
   );
 }
