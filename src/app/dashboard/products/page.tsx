@@ -131,10 +131,6 @@ export default async function ProductsPage() {
                   <TableHead>{t("products.category")}</TableHead>
                   <TableHead>{t("products.stock")}</TableHead>
                   <TableHead>{t("products.status")}</TableHead>
-                  <TableHead>{t("products.unit")}</TableHead>
-                  <TableHead>{t("products.rack")}</TableHead>
-                  <TableHead className="text-right">{t("products.purchase")}</TableHead>
-                  <TableHead className="text-right">{t("products.selling")}</TableHead>
                   <TableHead className="text-right">{t("common.actions")}</TableHead>
                 </TableRow>
               </TableHeader>
@@ -153,6 +149,16 @@ export default async function ProductsPage() {
                           <p className="text-xs text-muted-foreground">
                             SKU: {product.sku}
                           </p>
+                          <details className="pt-1 text-xs text-muted-foreground">
+                            <summary className="cursor-pointer font-medium text-foreground">
+                              {t("common.details")}
+                            </summary>
+                            <div className="mt-2 space-y-1">
+                              <p>{t("products.rack")}: {product.rackLocation ?? "-"}</p>
+                              <p>{t("products.purchase")}: {formatCurrency(product.purchasePrice.toString(), { locale })}</p>
+                              <p>{t("products.selling")}: {formatCurrency(product.sellingPrice.toString(), { locale })}</p>
+                            </div>
+                          </details>
                         </div>
                       </TableCell>
                       <TableCell>{product.category.name}</TableCell>
@@ -166,14 +172,6 @@ export default async function ProductsPage() {
                       </TableCell>
                       <TableCell>
                         <StockStatusBadge status={status} />
-                      </TableCell>
-                      <TableCell>{product.unit}</TableCell>
-                      <TableCell>{product.rackLocation ?? "-"}</TableCell>
-                      <TableCell className="text-right font-medium">
-                        {formatCurrency(product.purchasePrice.toString(), { locale })}
-                      </TableCell>
-                      <TableCell className="text-right font-medium">
-                        {formatCurrency(product.sellingPrice.toString(), { locale })}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">

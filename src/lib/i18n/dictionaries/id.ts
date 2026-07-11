@@ -22,6 +22,7 @@ export const id = {
       "Peran Anda saat ini tidak memiliki izin untuk membuka workspace StockWise ini.",
     returnToDashboard: "Kembali ke dasbor",
     signIn: "Masuk",
+    details: "Detail",
     pending: "Menunggu",
     loading: "Memuat...",
     signedInAs: "Masuk sebagai",

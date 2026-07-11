@@ -41,10 +41,10 @@ export function NavItem({
       href={item.href}
       onClick={onNavigate}
       className={cn(
-        "group flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium transition-colors",
+        "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
         collapsed ? "justify-center px-2.5" : "justify-start",
         active
-          ? "bg-primary text-primary-foreground shadow-sm"
+          ? "bg-white/10 text-white"
           : "text-muted-foreground hover:bg-muted hover:text-foreground"
       )}
       aria-current={active ? "page" : undefined}

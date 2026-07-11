@@ -1,8 +1,5 @@
 import {
   CircleCheckBig,
-  CircleOff,
-  PackageCheck,
-  TimerReset,
   Truck,
 } from "lucide-react";
 
@@ -216,67 +213,14 @@ export default async function RestockOrdersPage() {
         }
       />
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <Card className="stockwise-panel">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0">
-            <div className="space-y-1">
-              <CardTitle className="text-sm font-medium">{t("restockOrders.pending")}</CardTitle>
-              <CardDescription>{t("restockOrders.pendingDescription")}</CardDescription>
-            </div>
-            <TimerReset className="size-5 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-semibold tracking-tight">
-              {pendingCount}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="stockwise-panel">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0">
-            <div className="space-y-1">
-              <CardTitle className="text-sm font-medium">{t("restockOrders.inTransit")}</CardTitle>
-              <CardDescription>{t("restockOrders.inTransitDescription")}</CardDescription>
-            </div>
-            <Truck className="size-5 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-semibold tracking-tight">
-              {inTransitCount}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="stockwise-panel">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0">
-            <div className="space-y-1">
-              <CardTitle className="text-sm font-medium">{t("restockOrders.received")}</CardTitle>
-              <CardDescription>{t("restockOrders.receivedDescription")}</CardDescription>
-            </div>
-            <PackageCheck className="size-5 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-semibold tracking-tight">
-              {receivedCount}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="stockwise-panel">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0">
-            <div className="space-y-1">
-              <CardTitle className="text-sm font-medium">{t("restockOrders.rejected")}</CardTitle>
-              <CardDescription>{t("restockOrders.rejectedDescription")}</CardDescription>
-            </div>
-            <CircleOff className="size-5 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-semibold tracking-tight">
-              {rejectedCount}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      <Card className="border-border bg-card shadow-none">
+        <CardContent className="grid gap-6 pt-6 sm:grid-cols-2 xl:grid-cols-4">
+          <SummaryValue label={t("restockOrders.pending")} value={pendingCount} warning />
+          <SummaryValue label={t("restockOrders.inTransit")} value={inTransitCount} />
+          <SummaryValue label={t("restockOrders.received")} value={receivedCount} />
+          <SummaryValue label={t("restockOrders.rejected")} value={rejectedCount} />
+        </CardContent>
+      </Card>
 
       {restockOrders.length === 0 ? (
         <DataEmptyState
@@ -299,7 +243,6 @@ export default async function RestockOrdersPage() {
                 <TableRow>
                   <TableHead>{t("restockOrders.order")}</TableHead>
                   <TableHead>{t("restockOrders.supplier")}</TableHead>
-                  <TableHead>{t("restockOrders.items")}</TableHead>
                   <TableHead>{t("restockOrders.timeline")}</TableHead>
                   <TableHead>{t("restockOrders.rating")}</TableHead>
                   <TableHead className="text-right">{t("common.actions")}</TableHead>
@@ -328,6 +271,17 @@ export default async function RestockOrdersPage() {
                         <p className="text-xs text-muted-foreground">
                           {order.notes ?? t("common.noNotes")}
                         </p>
+                        <details className="text-xs text-muted-foreground">
+                          <summary className="cursor-pointer font-medium text-foreground">{t("common.details")}</summary>
+                          <div className="mt-2 space-y-2">
+                            {order.items.map((item) => (
+                              <p key={item.id}>
+                                {item.product.name} ({item.product.sku}) · {item.quantity} {item.product.unit}
+                                {item.estimatedPrice ? ` · ${formatCurrency(item.estimatedPrice.toString(), { locale })}` : ""}
+                              </p>
+                            ))}
+                          </div>
+                        </details>
                       </div>
                     </TableCell>
                     <TableCell className="min-w-56">
@@ -336,26 +290,6 @@ export default async function RestockOrdersPage() {
                         <p className="text-xs text-muted-foreground">
                           {order.supplier.user.name}
                         </p>
-                      </div>
-                    </TableCell>
-                    <TableCell className="min-w-80">
-                      <div className="space-y-2">
-                        {order.items.map((item) => (
-                          <div
-                            key={item.id}
-                            className="rounded-xl border border-border/60 px-3 py-2"
-                          >
-                            <p className="text-sm font-medium">
-                              {item.product.name} ({item.product.sku})
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              Qty {item.quantity} {item.product.unit}
-                              {item.estimatedPrice
-                                ? ` | ${formatCurrency(item.estimatedPrice.toString(), { locale })}`
-                                : ""}
-                            </p>
-                          </div>
-                        ))}
                       </div>
                     </TableCell>
                     <TableCell className="min-w-56">
@@ -479,6 +413,15 @@ export default async function RestockOrdersPage() {
           </CardContent>
         </Card>
       )}
+    </div>
+  );
+}
+
+function SummaryValue({ label, value, warning = false }: { label: string; value: number; warning?: boolean }) {
+  return (
+    <div>
+      <p className="text-sm text-muted-foreground">{label}</p>
+      <p className={warning && value > 0 ? "mt-2 text-2xl font-semibold text-amber-600" : "mt-2 text-2xl font-semibold"}>{value}</p>
     </div>
   );
 }

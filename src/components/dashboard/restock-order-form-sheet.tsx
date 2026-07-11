@@ -395,7 +395,7 @@ export function RestockOrderFormSheet({
             </div>
           </div>
 
-          <SheetFooter className="border-t border-border/70 px-0">
+          <SheetFooter className="sticky bottom-0 border-t border-border bg-background px-0 py-4">
             <Button
               type="button"
               variant="outline"

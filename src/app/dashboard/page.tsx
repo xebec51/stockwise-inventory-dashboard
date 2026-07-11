@@ -1,53 +1,37 @@
 import Link from "next/link";
-import {
-  AlertTriangle,
-  ArrowRight,
-  Boxes,
-  ClipboardList,
-  PackageCheck,
-  Wallet,
-} from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
-import { InventoryAnalyticsCharts } from "@/components/dashboard/inventory-analytics-charts";
 import { PageHeader } from "@/components/dashboard/page-header";
+import { StockStatusBadge } from "@/components/dashboard/stock-status-badge";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { requireDashboardPathAccess } from "@/lib/auth";
 import { formatCurrency, formatDateTime } from "@/lib/formatters";
 import { getServerTranslator } from "@/lib/i18n/server";
-import {
-  translateStockStatus,
-  translateTransactionStatus,
-} from "@/lib/i18n/status";
+import { translateRestockStatus, translateTransactionStatus } from "@/lib/i18n/status";
 import { prisma } from "@/lib/prisma";
 import { getStockStatus } from "@/lib/stock";
 import { cn } from "@/lib/utils";
-import { requireDashboardPathAccess } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
-const RECENT_TRANSACTION_LIMIT = 5;
-const LOW_STOCK_PREVIEW_LIMIT = 5;
+const PREVIEW_LIMIT = 5;
 
-function getStatusBadgeVariant(status: string) {
-  switch (status) {
-    case "PENDING":
-      return "secondary";
-    case "APPROVED":
-    case "COMPLETED":
-      return "default";
-    case "REJECTED":
-      return "destructive";
-    default:
-      return "outline";
-  }
-}
+type InventorySummaryRow = {
+  totalProducts: number;
+  inventoryValue: string;
+  lowStockCount: number;
+  outOfStockCount: number;
+};
+
+type PriorityProductRow = {
+  id: string;
+  name: string;
+  currentStock: number;
+  minimumStock: number;
+  categoryName: string;
+};
 
 export default async function DashboardPage() {
   const currentUser = await requireDashboardPathAccess("/dashboard");
@@ -67,362 +51,159 @@ export default async function DashboardPage() {
         : currentUser.role === "STAFF"
           ? { id: "__restricted__" }
           : undefined;
-  const [
-    products,
-    movementTransactions,
-    recentTransactions,
-    pendingTransactionCount,
-    activeRestockOrderCount,
-  ] = await Promise.all([
-    prisma.product.findMany({
-      where: canViewInventory ? undefined : { id: "__restricted__" },
-      select: {
-        id: true,
-        name: true,
-        currentStock: true,
-        minimumStock: true,
-        purchasePrice: true,
-        category: {
-          select: {
-            name: true,
-          },
+
+  const inventorySummaryPromise = canViewInventory
+    ? prisma.$queryRaw<InventorySummaryRow[]>`
+        SELECT
+          COUNT(*)::int AS "totalProducts",
+          COALESCE(SUM(current_stock * purchase_price), 0)::text AS "inventoryValue",
+          COUNT(*) FILTER (
+            WHERE current_stock > 0 AND current_stock <= minimum_stock
+          )::int AS "lowStockCount",
+          COUNT(*) FILTER (WHERE current_stock <= 0)::int AS "outOfStockCount"
+        FROM products
+      `
+    : Promise.resolve([
+        { totalProducts: 0, inventoryValue: "0", lowStockCount: 0, outOfStockCount: 0 },
+      ]);
+  const priorityProductsPromise = canViewInventory
+    ? prisma.$queryRaw<PriorityProductRow[]>`
+        SELECT
+          p.id,
+          p.name,
+          p.current_stock AS "currentStock",
+          p.minimum_stock AS "minimumStock",
+          c.name AS "categoryName"
+        FROM products p
+        JOIN categories c ON c.id = p.category_id
+        WHERE p.current_stock <= p.minimum_stock
+        ORDER BY p.current_stock ASC, p.name ASC
+        LIMIT ${PREVIEW_LIMIT}
+      `
+    : Promise.resolve([] as PriorityProductRow[]);
+
+  const [inventoryRows, priorityProducts, recentTransactions, pendingTransactionCount, activeRestockOrderCount, recentRestocks] =
+    await Promise.all([
+      inventorySummaryPromise,
+      priorityProductsPromise,
+      prisma.transaction.findMany({
+        where: transactionWhere,
+        take: PREVIEW_LIMIT,
+        orderBy: [{ transactionDate: "desc" }, { createdAt: "desc" }],
+        select: {
+          id: true,
+          transactionNumber: true,
+          type: true,
+          status: true,
+          transactionDate: true,
+          creator: { select: { name: true } },
         },
-      },
-    }),
-    prisma.transaction.findMany({
-      where: {
-        ...transactionWhere,
-        status: {
-          in: ["APPROVED", "COMPLETED"],
+      }),
+      prisma.transaction.count({ where: { ...transactionWhere, status: "PENDING" } }),
+      prisma.restockOrder.count({
+        where: { ...restockWhere, status: { in: ["PENDING", "CONFIRMED", "IN_TRANSIT"] } },
+      }),
+      prisma.restockOrder.findMany({
+        where:
+          currentUser.role === "SUPPLIER"
+            ? restockWhere
+            : { id: "__not_needed__" },
+        take: PREVIEW_LIMIT,
+        orderBy: [{ orderDate: "desc" }, { createdAt: "desc" }],
+        select: {
+          id: true,
+          poNumber: true,
+          status: true,
+          supplier: { select: { companyName: true } },
         },
-      },
-      select: {
-        type: true,
-        transactionDate: true,
-        items: {
-          select: {
-            quantity: true,
-          },
-        },
-      },
-    }),
-    prisma.transaction.findMany({
-      where: transactionWhere,
-      take: RECENT_TRANSACTION_LIMIT,
-      orderBy: [{ transactionDate: "desc" }, { createdAt: "desc" }],
-      select: {
-        id: true,
-        transactionNumber: true,
-        type: true,
-        status: true,
-        destination: true,
-        transactionDate: true,
-        creator: {
-          select: {
-            name: true,
-          },
-        },
-      },
-    }),
-    prisma.transaction.count({
-      where: {
-        ...transactionWhere,
-        status: "PENDING",
-      },
-    }),
-    prisma.restockOrder.count({
-      where: {
-        ...restockWhere,
-        status: {
-          in: ["PENDING", "CONFIRMED", "IN_TRANSIT"],
-        },
-      },
-    }),
-  ]);
-
-  const inventoryByCategoryMap = new Map<string, number>();
-  const lowStockCandidates: typeof products = [];
-  let totalInventoryValue = 0;
-  let lowStockCount = 0;
-  let outOfStockCount = 0;
-
-  products.forEach((product) => {
-    const status = getStockStatus(product.currentStock, product.minimumStock);
-    const currentValue = inventoryByCategoryMap.get(product.category.name) ?? 0;
-    const productValue = Number(product.purchasePrice) * product.currentStock;
-
-    totalInventoryValue += productValue;
-    inventoryByCategoryMap.set(product.category.name, currentValue + productValue);
-
-    if (status === "LOW_STOCK") {
-      lowStockCount += 1;
-      lowStockCandidates.push(product);
-    }
-
-    if (status === "OUT_OF_STOCK") {
-      outOfStockCount += 1;
-      lowStockCandidates.push(product);
-    }
-  });
-
-  const lowStockProducts = lowStockCandidates
-    .sort((left, right) => left.currentStock - right.currentStock)
-    .slice(0, LOW_STOCK_PREVIEW_LIMIT);
-
-  const inventoryByCategory = [...inventoryByCategoryMap.entries()]
-    .map(([name, value]) => ({
-      name,
-      value,
-    }))
-    .sort((left, right) => right.value - left.value);
-
-  const movementMap = new Map<string, { label: string; incoming: number; outgoing: number }>();
-
-  movementTransactions.forEach((transaction) => {
-    const monthKey = new Intl.DateTimeFormat(locale === "id" ? "id-ID" : "en-US", {
-      month: "short",
-      year: "2-digit",
-    }).format(transaction.transactionDate);
-    const quantity = transaction.items.reduce(
-      (total, item) => total + item.quantity,
-      0
-    );
-
-    const entry = movementMap.get(monthKey) ?? {
-      label: monthKey,
-      incoming: 0,
-      outgoing: 0,
-    };
-
-    if (transaction.type === "INCOMING") {
-      entry.incoming += quantity;
-    } else {
-      entry.outgoing += quantity;
-    }
-
-    movementMap.set(monthKey, entry);
-  });
-
-  const movementData = [...movementMap.values()];
+      }),
+    ]);
+  const inventorySummary = inventoryRows[0] ?? {
+    totalProducts: 0,
+    inventoryValue: "0",
+    lowStockCount: 0,
+    outOfStockCount: 0,
+  };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader
         eyebrow={t("dashboard.overview")}
         title={t("dashboard.commandCenter")}
         description={t("dashboard.commandDescription")}
         action={
-          <Link
-            href="/dashboard/transactions"
-            className={cn(buttonVariants({ variant: "default", size: "sm" }))}
-          >
-            {t("dashboard.reviewTransactions")}
-            <ArrowRight className="size-4" />
-          </Link>
+          currentUser.role !== "SUPPLIER" ? (
+            <Link href="/dashboard/transactions" className={cn(buttonVariants({ size: "sm" }))}>
+              {t("dashboard.reviewTransactions")} <ArrowRight className="size-4" />
+            </Link>
+          ) : undefined
         }
       />
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        <Card className="stockwise-panel">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0">
-            <div className="space-y-1">
-              <CardTitle className="text-sm font-medium">{t("dashboard.totalProducts")}</CardTitle>
-              <CardDescription>{t("dashboard.totalProductsDescription")}</CardDescription>
-            </div>
-            <Boxes className="size-5 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-semibold tracking-tight">{products.length}</p>
-          </CardContent>
-        </Card>
+      <Card className="border-border bg-card shadow-none">
+        <CardHeader><CardTitle className="text-lg">{t("dashboard.overview")}</CardTitle></CardHeader>
+        <CardContent className="grid gap-6 border-t border-border pt-6 sm:grid-cols-2 xl:grid-cols-5">
+          <Metric label={t("dashboard.totalProducts")} value={String(inventorySummary.totalProducts)} />
+          <Metric label={t("dashboard.inventoryValue")} value={formatCurrency(inventorySummary.inventoryValue, { locale })} />
+          <Metric label={t("dashboard.lowStock")} value={String(inventorySummary.lowStockCount)} warning={inventorySummary.lowStockCount > 0} />
+          <Metric label={t("statuses.stock.OUT_OF_STOCK")} value={String(inventorySummary.outOfStockCount)} danger={inventorySummary.outOfStockCount > 0} />
+          <Metric label={t("dashboard.pendingTransactions")} value={String(pendingTransactionCount + activeRestockOrderCount)} warning={pendingTransactionCount + activeRestockOrderCount > 0} />
+        </CardContent>
+      </Card>
 
-        <Card className="stockwise-panel">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0">
-            <div className="space-y-1">
-              <CardTitle className="text-sm font-medium">{t("dashboard.inventoryValue")}</CardTitle>
-              <CardDescription>{t("dashboard.inventoryValueDescription")}</CardDescription>
-            </div>
-            <Wallet className="size-5 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-semibold tracking-tight">
-              {formatCurrency(totalInventoryValue, { locale })}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="stockwise-panel border-amber-200/70 bg-amber-50/45 dark:border-amber-500/25 dark:bg-amber-500/10">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0">
-            <div className="space-y-1">
-              <CardTitle className="text-sm font-medium">{t("dashboard.lowStock")}</CardTitle>
-              <CardDescription>{t("dashboard.lowStockDescription")}</CardDescription>
-            </div>
-            <AlertTriangle className="size-5 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-semibold tracking-tight">{lowStockCount}</p>
-            <p className="text-sm text-muted-foreground">
-              {t("dashboard.outOfStockNow", { count: outOfStockCount })}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="stockwise-panel">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0">
-            <div className="space-y-1">
-              <CardTitle className="text-sm font-medium">{t("dashboard.pendingTransactions")}</CardTitle>
-              <CardDescription>{t("dashboard.pendingTransactionsDescription")}</CardDescription>
-            </div>
-            <ClipboardList className="size-5 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-semibold tracking-tight">
-              {pendingTransactionCount}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="stockwise-panel">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0">
-            <div className="space-y-1">
-              <CardTitle className="text-sm font-medium">{t("dashboard.activeRestocks")}</CardTitle>
-              <CardDescription>{t("dashboard.activeRestocksDescription")}</CardDescription>
-            </div>
-            <PackageCheck className="size-5 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-semibold tracking-tight">
-              {activeRestockOrderCount}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="stockwise-panel">
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-sm font-medium">{t("dashboard.stockPressure")}</CardTitle>
-            <CardDescription>{t("dashboard.stockPressureDescription")}</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {lowStockProducts.slice(0, 3).map((product) => (
-              <div
-                key={product.id}
-                className="flex items-center justify-between rounded-xl border border-border/70 bg-background/45 px-3 py-2"
-              >
+      <section className="grid gap-8 xl:grid-cols-[1.05fr_0.95fr]">
+        <Card className="border-border bg-card shadow-none">
+          <CardHeader><CardTitle className="text-lg">{t("dashboard.recentTransactions")}</CardTitle></CardHeader>
+          <CardContent className="divide-y divide-border">
+            {recentTransactions.map((transaction) => (
+              <div key={transaction.id} className="flex items-center justify-between gap-4 py-4 first:pt-0 last:pb-0">
                 <div>
-                  <p className="text-sm font-medium">{product.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {product.category.name}
+                  <p className="font-medium">{transaction.transactionNumber}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {transaction.creator.name} · {formatDateTime(transaction.transactionDate, { locale })}
                   </p>
                 </div>
-                <Badge
-                  variant={
-                    product.currentStock === 0 ? "destructive" : "secondary"
-                  }
-                >
-                  {product.currentStock}
-                </Badge>
-              </div>
-            ))}
-            {lowStockProducts.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                {t("dashboard.noLowStock")}
-              </p>
-            ) : null}
-          </CardContent>
-        </Card>
-      </section>
-
-      <InventoryAnalyticsCharts
-        categoryData={inventoryByCategory}
-        movementData={movementData}
-      />
-
-      <section className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
-        <Card className="stockwise-panel">
-          <CardHeader>
-            <CardTitle>{t("dashboard.recentTransactions")}</CardTitle>
-            <CardDescription>
-              {t("dashboard.recentTransactionsDescription")}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {recentTransactions.map((transaction) => (
-              <div
-                key={transaction.id}
-                className="rounded-2xl border border-border/70 bg-muted/25 p-4 transition-colors hover:bg-muted/38"
-              >
-                <div className="flex flex-wrap items-center gap-2">
-                  <p className="font-medium">{transaction.transactionNumber}</p>
-                  <Badge variant="outline">
-                    {translateTransactionStatus(transaction.type, locale)}
-                  </Badge>
-                  <Badge variant={getStatusBadgeVariant(transaction.status)}>
+                <div className="flex gap-2">
+                  <span className="text-sm text-muted-foreground">{translateTransactionStatus(transaction.type, locale)}</span>
+                  <Badge variant={transaction.status === "REJECTED" ? "destructive" : "outline"}>
                     {translateTransactionStatus(transaction.status, locale)}
                   </Badge>
                 </div>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  {transaction.creator.name} -{" "}
-                  {formatDateTime(transaction.transactionDate, { locale })}
-                </p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {transaction.destination ?? t("common.noDestination")}
-                </p>
               </div>
             ))}
+            {recentTransactions.length === 0 ? <p className="text-sm text-muted-foreground">{t("transactions.emptyTitle")}</p> : null}
           </CardContent>
         </Card>
 
-        <Card className="stockwise-panel">
+        <Card className="border-border bg-card shadow-none">
           <CardHeader>
-            <CardTitle>{t("dashboard.lowStockProducts")}</CardTitle>
-            <CardDescription>
-              {t("dashboard.lowStockProductsDescription")}
-            </CardDescription>
+            <CardTitle className="text-lg">
+              {currentUser.role === "SUPPLIER" ? t("restockOrders.tableTitle") : t("dashboard.lowStockProducts")}
+            </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
-            {lowStockProducts.map((product) => {
-              const status = getStockStatus(
-                product.currentStock,
-                product.minimumStock
-              );
-
-              return (
-                <div
-                  key={product.id}
-                  className="rounded-2xl border border-border/70 bg-muted/25 p-4 transition-colors hover:bg-muted/38"
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <p className="font-medium">{product.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {product.category.name}
-                      </p>
-                    </div>
-                    <Badge
-                      variant={
-                        status === "OUT_OF_STOCK" ? "destructive" : "secondary"
-                      }
-                    >
-                      {translateStockStatus(status, locale)}
-                    </Badge>
+          <CardContent className="divide-y divide-border">
+            {currentUser.role === "SUPPLIER"
+              ? recentRestocks.map((order) => (
+                  <div key={order.id} className="flex items-center justify-between gap-4 py-4 first:pt-0 last:pb-0">
+                    <div><p className="font-medium">{order.poNumber}</p><p className="mt-1 text-sm text-muted-foreground">{order.supplier.companyName}</p></div>
+                    <Badge variant="outline">{translateRestockStatus(order.status, locale)}</Badge>
                   </div>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    {t("dashboard.currentStockMinimumLabel", {
-                      current: product.currentStock,
-                      minimum: product.minimumStock,
-                    })}
-                  </p>
-                </div>
-              );
-            })}
-            {lowStockProducts.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                {t("dashboard.healthyThresholds")}
-              </p>
-            ) : null}
+                ))
+              : priorityProducts.map((product) => (
+                  <div key={product.id} className="flex items-center justify-between gap-4 py-4 first:pt-0 last:pb-0">
+                    <div><p className="font-medium">{product.name}</p><p className="mt-1 text-sm text-muted-foreground">{product.categoryName} · {product.currentStock}/{product.minimumStock}</p></div>
+                    <StockStatusBadge status={getStockStatus(product.currentStock, product.minimumStock)} />
+                  </div>
+                ))}
+            {currentUser.role !== "SUPPLIER" && priorityProducts.length === 0 ? <p className="text-sm text-muted-foreground">{t("dashboard.healthyThresholds")}</p> : null}
           </CardContent>
         </Card>
       </section>
     </div>
   );
+}
+
+function Metric({ label, value, warning = false, danger = false }: { label: string; value: string; warning?: boolean; danger?: boolean }) {
+  const tone = danger ? "text-rose-600" : warning ? "text-amber-600" : "text-foreground";
+  return <div><p className="text-sm text-muted-foreground">{label}</p><p className={`mt-2 text-2xl font-semibold ${tone}`}>{value}</p></div>;
 }

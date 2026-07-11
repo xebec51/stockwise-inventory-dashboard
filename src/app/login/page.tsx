@@ -1,25 +1,14 @@
 import { redirect } from "next/navigation";
-import { Boxes, ScanLine, ShieldCheck } from "lucide-react";
+import { Boxes } from "lucide-react";
 
 import { AppFooter } from "@/components/app-footer";
 import { LoginForm } from "@/components/auth/login-form";
 import { LanguageSwitcher } from "@/components/language-switcher";
-import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getAuthSession } from "@/lib/auth";
 import { getServerTranslator } from "@/lib/i18n/server";
 
-type LoginPageProps = {
-  searchParams?: Promise<{
-    error?: string;
-  }>;
-};
+type LoginPageProps = { searchParams?: Promise<{ error?: string }> };
 
 export const dynamic = "force-dynamic";
 
@@ -35,72 +24,45 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const session = await getAuthSession();
   const { t } = await getServerTranslator();
 
-  if (session?.user?.status === "ACTIVE") {
-    redirect("/dashboard");
-  }
+  if (session?.user?.status === "ACTIVE") redirect("/dashboard");
 
   const params = await searchParams;
 
   return (
     <>
-      <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(8,145,178,0.17),transparent_34%),radial-gradient(circle_at_88%_8%,rgba(16,185,129,0.12),transparent_28%)] px-4 py-10">
-        <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-          <div className="stockwise-ink stockwise-signal rounded-[2rem] p-8">
-            <div className="flex items-start justify-between gap-4">
-              <Badge className="gap-2 border-cyan-300/25 bg-cyan-300/10 text-cyan-100 hover:bg-cyan-300/15">
-                <ShieldCheck className="size-4" />
-                {t("login.badge")}
-              </Badge>
-              <LanguageSwitcher />
-            </div>
-            <div className="mt-6 space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="flex size-12 items-center justify-center rounded-2xl bg-cyan-300/15 text-cyan-100 ring-1 ring-cyan-300/25">
-                  <Boxes className="size-6" />
-                </div>
-                <div>
-                  <h1 className="text-3xl font-semibold tracking-tight">
-                    {t("login.title")}
-                  </h1>
-                  <p className="text-sm text-white/60">
-                    {t("login.description")}
-                  </p>
-                </div>
+      <main className="min-h-screen bg-slate-50 px-4 py-12">
+        <div className="mx-auto max-w-md">
+          <div className="mb-8 flex items-start justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 items-center justify-center rounded-lg bg-slate-950 text-white">
+                <Boxes className="size-4" />
               </div>
-
-              <p className="max-w-2xl text-sm leading-7 text-white/68">
-                {t("login.intro")}
-              </p>
-
-              <div className="grid gap-3 sm:grid-cols-2">
-                {demoAccounts.map((account) => (
-                  <div
-                    key={account}
-                    className="rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3 text-sm text-white/82"
-                  >
-                    {account}
-                  </div>
-                ))}
-              </div>
-
-              <div className="flex items-center gap-3 rounded-2xl border border-emerald-300/20 bg-emerald-300/10 px-4 py-3 text-sm text-emerald-50">
-                <ScanLine className="size-4 shrink-0" />
-                {t("login.demoPassword")}: <strong>Password123!</strong>
+              <div>
+                <h1 className="text-2xl font-semibold tracking-tight text-slate-950">{t("login.title")}</h1>
+                <p className="text-sm text-slate-500">{t("login.description")}</p>
               </div>
             </div>
+            <LanguageSwitcher />
           </div>
 
-          <Card className="stockwise-panel rounded-[2rem]">
+          <Card className="border-slate-200 bg-white shadow-none">
             <CardHeader>
               <CardTitle>{t("login.accessTitle")}</CardTitle>
               <CardDescription>{t("login.accessDescription")}</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-5">
               <LoginForm error={params?.error} />
+              <details className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm">
+                <summary className="cursor-pointer font-medium text-slate-900">{t("login.badge")}</summary>
+                <div className="mt-3 space-y-1 text-slate-600">
+                  {demoAccounts.map((account) => <p key={account}>{account}</p>)}
+                  <p className="pt-2">{t("login.demoPassword")}: <strong>Password123!</strong></p>
+                </div>
+              </details>
             </CardContent>
           </Card>
         </div>
-      </div>
+      </main>
       <AppFooter />
     </>
   );

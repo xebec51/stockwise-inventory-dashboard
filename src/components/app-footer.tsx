@@ -2,15 +2,12 @@
 
 import Link from "next/link";
 import {
-  Activity,
   Boxes,
   Code2,
   ExternalLink,
   Mail,
-  Radar,
 } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
 import { useI18n } from "@/lib/i18n/use-i18n";
 
 const productLinks = [
@@ -54,14 +51,11 @@ export function AppFooter() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="relative overflow-hidden border-t border-white/10 bg-[linear-gradient(135deg,oklch(0.16_0.026_250),oklch(0.22_0.042_230))] text-white">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_14%_0%,rgba(34,211,238,0.22),transparent_31%),radial-gradient(circle_at_88%_18%,rgba(16,185,129,0.16),transparent_28%)]" />
-      <div className="pointer-events-none absolute inset-0 stockwise-grid opacity-[0.06]" />
-
-      <div className="relative mx-auto grid max-w-7xl gap-8 px-6 py-12 sm:px-8 lg:grid-cols-[1.2fr_0.8fr_1fr] lg:px-10">
+    <footer className="border-t border-slate-800 bg-slate-950 text-white">
+      <div className="mx-auto grid max-w-7xl gap-10 px-6 py-12 sm:px-8 lg:grid-cols-[1.2fr_0.8fr_1fr] lg:px-10">
         <div className="space-y-5">
           <div className="flex items-center gap-3">
-            <div className="flex size-11 items-center justify-center rounded-2xl bg-cyan-300 text-slate-950 shadow-lg shadow-cyan-950/30">
+            <div className="flex size-10 items-center justify-center rounded-lg bg-cyan-300 text-slate-950">
               <Boxes className="size-5" />
             </div>
             <div>
@@ -72,10 +66,6 @@ export function AppFooter() {
           <p className="max-w-md text-sm leading-6 text-white/68">
             {t("footer.description")}
           </p>
-          <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-xs font-semibold text-cyan-100">
-            <Radar className="size-3.5" />
-            {t("developer.portfolioProject")}
-          </div>
         </div>
 
         <div>
@@ -87,17 +77,16 @@ export function AppFooter() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="group inline-flex w-fit items-center gap-2 text-white/72 transition hover:text-cyan-100"
+                className="inline-flex w-fit items-center gap-2 text-white/72 transition hover:text-cyan-100"
               >
                 {t(item.labelKey)}
-                <ExternalLink className="size-3.5 opacity-0 transition group-hover:opacity-100" />
               </Link>
             ))}
           </nav>
         </div>
 
-        <div className="rounded-3xl border border-white/10 bg-white/[0.06] p-5 shadow-2xl shadow-black/20">
-          <div className="flex items-start justify-between gap-4">
+        <div>
+          <div>
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-cyan-100/70">
                 {t("footer.developer")}
@@ -108,9 +97,6 @@ export function AppFooter() {
               <p className="mt-1 text-sm text-white/60">
                 {t("developer.role")}
               </p>
-            </div>
-            <div className="flex size-11 items-center justify-center rounded-2xl bg-emerald-300/15 text-emerald-100 ring-1 ring-emerald-300/25">
-              <Activity className="size-5" />
             </div>
           </div>
           <p className="mt-4 text-sm leading-6 text-white/66">
@@ -128,7 +114,7 @@ export function AppFooter() {
                   target={external ? "_blank" : undefined}
                   rel={external ? "noreferrer" : undefined}
                   aria-label={t(link.labelKey)}
-                  className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.06] px-3 py-2 text-xs font-semibold text-white/78 transition hover:border-cyan-300/30 hover:bg-cyan-300/10 hover:text-cyan-100"
+                  className="inline-flex items-center gap-2 text-xs font-semibold text-white/70 transition hover:text-cyan-100"
                 >
                   <Icon className="size-3.5" />
                   {t(link.labelKey)}
@@ -139,19 +125,12 @@ export function AppFooter() {
         </div>
       </div>
 
-      <div className="relative border-t border-white/10">
+      <div className="border-t border-white/10">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-6 py-5 text-sm text-white/55 sm:px-8 lg:flex-row lg:items-center lg:justify-between lg:px-10">
           <p>{t("footer.rights", { year })}</p>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 text-xs">
             <Code2 className="size-4 text-cyan-100/75" />
-            {techStack.map((item) => (
-              <Badge
-                key={item}
-                className="border-white/10 bg-white/[0.06] text-white/68 hover:bg-white/[0.08]"
-              >
-                {item}
-              </Badge>
-            ))}
+            {techStack.join(" · ")}
           </div>
         </div>
       </div>

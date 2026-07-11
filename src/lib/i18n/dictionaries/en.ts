@@ -22,6 +22,7 @@ export const en = {
       "Your current role does not have permission to open this StockWise workspace.",
     returnToDashboard: "Return to dashboard",
     signIn: "Sign in",
+    details: "Details",
     pending: "Pending",
     loading: "Loading...",
     signedInAs: "Signed in as",

@@ -1,10 +1,4 @@
-import {
-  ArrowDownToLine,
-  ArrowUpFromLine,
-  CircleCheckBig,
-  ClipboardList,
-  Clock3,
-} from "lucide-react";
+import { ClipboardList } from "lucide-react";
 
 import { DataEmptyState } from "@/components/dashboard/data-empty-state";
 import { ExportButtons } from "@/components/dashboard/export-buttons";
@@ -198,67 +192,14 @@ export default async function TransactionsPage() {
         }
       />
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <Card className="stockwise-panel">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0">
-            <div className="space-y-1">
-              <CardTitle className="text-sm font-medium">{t("transactions.pendingReview")}</CardTitle>
-              <CardDescription>{t("transactions.pendingReviewDescription")}</CardDescription>
-            </div>
-            <Clock3 className="size-5 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-semibold tracking-tight">
-              {pendingCount}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="stockwise-panel">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0">
-            <div className="space-y-1">
-              <CardTitle className="text-sm font-medium">{t("transactions.approvedDone")}</CardTitle>
-              <CardDescription>{t("transactions.approvedDoneDescription")}</CardDescription>
-            </div>
-            <CircleCheckBig className="size-5 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-semibold tracking-tight">
-              {approvedOrCompletedCount}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="stockwise-panel">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0">
-            <div className="space-y-1">
-              <CardTitle className="text-sm font-medium">{t("transactions.rejected")}</CardTitle>
-              <CardDescription>{t("transactions.rejectedDescription")}</CardDescription>
-            </div>
-            <ArrowUpFromLine className="size-5 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-semibold tracking-tight">
-              {rejectedCount}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="stockwise-panel">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0">
-            <div className="space-y-1">
-              <CardTitle className="text-sm font-medium">{t("transactions.itemLines")}</CardTitle>
-              <CardDescription>{t("transactions.itemLinesDescription")}</CardDescription>
-            </div>
-            <ArrowDownToLine className="size-5 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-semibold tracking-tight">
-              {itemLineCount}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      <Card className="border-border bg-card shadow-none">
+        <CardContent className="grid gap-6 pt-6 sm:grid-cols-2 xl:grid-cols-4">
+          <SummaryValue label={t("transactions.pendingReview")} value={pendingCount} warning />
+          <SummaryValue label={t("transactions.approvedDone")} value={approvedOrCompletedCount} />
+          <SummaryValue label={t("transactions.rejected")} value={rejectedCount} />
+          <SummaryValue label={t("transactions.itemLines")} value={itemLineCount} />
+        </CardContent>
+      </Card>
 
       {transactions.length === 0 ? (
         <DataEmptyState
@@ -280,10 +221,8 @@ export default async function TransactionsPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>{t("transactions.transaction")}</TableHead>
-                  <TableHead>{t("transactions.workflow")}</TableHead>
                   <TableHead>{t("transactions.owner")}</TableHead>
                   <TableHead>{t("transactions.items")}</TableHead>
-                  <TableHead>{t("transactions.notes")}</TableHead>
                   <TableHead>{t("transactions.reviewed")}</TableHead>
                   <TableHead className="text-right">{t("common.actions")}</TableHead>
                 </TableRow>
@@ -307,20 +246,19 @@ export default async function TransactionsPage() {
                         <p className="text-xs text-muted-foreground">
                           {formatDateTime(transaction.transactionDate, { locale })}
                         </p>
-                        <p className="text-xs text-muted-foreground">
-                          {transaction.destination ?? t("common.noDestination")}
-                        </p>
+                        <details className="text-xs text-muted-foreground">
+                          <summary className="cursor-pointer font-medium text-foreground">{t("common.details")}</summary>
+                          <div className="mt-2 space-y-2 whitespace-normal">
+                            <p>{transaction.destination ?? t("common.noDestination")}</p>
+                            <p>{transaction.notes ?? t("common.noNotes")}</p>
+                            {transaction.items.map((item) => (
+                              <p key={item.id}>
+                                {item.product.name}: {t("transactions.quantityAudit", { quantity: item.quantity, unit: item.product.unit, before: item.stockBefore, after: item.stockAfter })}
+                              </p>
+                            ))}
+                          </div>
+                        </details>
                       </div>
-                    </TableCell>
-                    <TableCell className="min-w-52">
-                      <p className="font-medium">
-                        {transaction.type === "INCOMING"
-                          ? t("transactions.incomingReceipt")
-                          : t("transactions.outgoingShipment")}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {t("transactions.pendingNoStockChange")}
-                      </p>
                     </TableCell>
                     <TableCell className="min-w-52">
                       <div className="space-y-1">
@@ -334,31 +272,7 @@ export default async function TransactionsPage() {
                         </p>
                       </div>
                     </TableCell>
-                    <TableCell className="min-w-80">
-                      <div className="space-y-2">
-                        {transaction.items.map((item) => (
-                          <div
-                            key={item.id}
-                            className="rounded-xl border border-border/60 px-3 py-2"
-                          >
-                            <p className="text-sm font-medium">
-                              {item.product.name} ({item.product.sku})
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {t("transactions.quantityAudit", {
-                                quantity: item.quantity,
-                                unit: item.product.unit,
-                                before: item.stockBefore,
-                                after: item.stockAfter,
-                              })}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                    </TableCell>
-                    <TableCell className="min-w-56 whitespace-normal text-sm leading-6 text-muted-foreground">
-                      {transaction.notes ?? t("common.noNotes")}
-                    </TableCell>
+                    <TableCell>{transaction.items.length}</TableCell>
                     <TableCell>
                       {transaction.approvedAt
                         ? formatDateTime(transaction.approvedAt, { locale })
@@ -401,6 +315,15 @@ export default async function TransactionsPage() {
           </CardContent>
         </Card>
       )}
+    </div>
+  );
+}
+
+function SummaryValue({ label, value, warning = false }: { label: string; value: number; warning?: boolean }) {
+  return (
+    <div>
+      <p className="text-sm text-muted-foreground">{label}</p>
+      <p className={warning && value > 0 ? "mt-2 text-2xl font-semibold text-amber-600" : "mt-2 text-2xl font-semibold"}>{value}</p>
     </div>
   );
 }
