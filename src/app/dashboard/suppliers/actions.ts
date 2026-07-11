@@ -61,6 +61,23 @@ function revalidateSupplierRoutes() {
   revalidatePath("/dashboard/suppliers");
 }
 
+async function requireSupplierManager(): Promise<MutationState | null> {
+  try {
+    await requireCurrentUser(["ADMIN"]);
+    return null;
+  } catch (error) {
+    if (error instanceof Error && error.message === "FORBIDDEN") {
+      return {
+        message: "Only admins can manage supplier accounts.",
+      };
+    }
+
+    return {
+      message: "You must be signed in to manage suppliers.",
+    };
+  }
+}
+
 async function ensureUniqueSupplierEmail(
   email: string,
   supplierId?: string
@@ -119,8 +136,13 @@ export async function createSupplier(
   _state: MutationState,
   formData: FormData
 ): Promise<MutationState> {
+  const authError = await requireSupplierManager();
+
+  if (authError) {
+    return authError;
+  }
+
   try {
-    await requireCurrentUser(["ADMIN"]);
     const values = parseSupplierFormData(formData);
     const emailError = await ensureUniqueSupplierEmail(values.email);
 
@@ -186,8 +208,13 @@ export async function updateSupplier(
   _state: MutationState,
   formData: FormData
 ): Promise<MutationState> {
+  const authError = await requireSupplierManager();
+
+  if (authError) {
+    return authError;
+  }
+
   try {
-    await requireCurrentUser(["ADMIN"]);
     const values = parseSupplierFormData(formData);
 
     if (!values.id) {
@@ -267,18 +294,10 @@ export async function deleteSupplier(
   _state: MutationState,
   formData: FormData
 ): Promise<MutationState> {
-  try {
-    await requireCurrentUser(["ADMIN"]);
-  } catch (error) {
-    if (error instanceof Error && error.message === "FORBIDDEN") {
-      return {
-        message: "Only admins can manage supplier accounts.",
-      };
-    }
+  const authError = await requireSupplierManager();
 
-    return {
-      message: "You must be signed in to delete suppliers.",
-    };
+  if (authError) {
+    return authError;
   }
 
   const id = formData.get("id")?.toString();

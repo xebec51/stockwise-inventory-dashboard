@@ -8,6 +8,7 @@ import { Prisma, TransactionType } from "@/generated/prisma/client";
 import { type MutationState } from "@/lib/actions";
 import { requireCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getStockAfterMovement } from "@/lib/stock";
 import {
   transactionDecisionSchema,
   transactionFormSchema,
@@ -147,8 +148,9 @@ export async function createTransaction(
   _state: MutationState,
   formData: FormData
 ): Promise<MutationState> {
+  const sessionUser = await requireCurrentUser(["ADMIN", "STAFF"]);
+
   try {
-    const sessionUser = await requireCurrentUser(["ADMIN", "STAFF"]);
     const values = parseTransactionFormData(formData);
     const creator = await ensureCreatorExists(sessionUser.id);
 
@@ -161,55 +163,63 @@ export async function createTransaction(
       };
     }
 
-    const products = await prisma.product.findMany({
-      where: {
-        id: {
-          in: values.items.map((item) => item.productId),
-        },
-      },
-      select: {
-        id: true,
-        name: true,
-        currentStock: true,
-      },
-    });
-
-    if (products.length !== values.items.length) {
-      return {
-        errors: {
-          items: ["One or more selected products no longer exist."],
-        },
-        message: "Refresh the page and reselect the product lines.",
-      };
-    }
-
-    const productMap = new Map(products.map((product) => [product.id, product]));
-
-    if (values.type === "OUTGOING") {
-      const insufficientItem = values.items.find((item) => {
-        const product = productMap.get(item.productId);
-        return product ? item.quantity > product.currentStock : false;
-      });
-
-      if (insufficientItem) {
-        const product = productMap.get(insufficientItem.productId);
-
-        return {
-          errors: {
-            items: [
-              `${product?.name ?? "Selected product"} does not have enough available stock for this outgoing request.`,
-            ],
-          },
-          message:
-            "Outgoing transactions cannot request more stock than is currently available.",
-        };
-      }
-    }
-
     const transactionNumber = await generateTransactionNumber();
 
-    await prisma.$transaction(
+    const createResult = await prisma.$transaction(
       async (tx) => {
+        const products = await tx.product.findMany({
+          where: {
+            id: {
+              in: values.items.map((item) => item.productId),
+            },
+          },
+          select: {
+            id: true,
+            name: true,
+            currentStock: true,
+          },
+        });
+
+        if (products.length !== values.items.length) {
+          return {
+            ok: false as const,
+            state: {
+              errors: {
+                items: ["One or more selected products no longer exist."],
+              },
+              message: "Refresh the page and reselect the product lines.",
+            },
+          };
+        }
+
+        const productMap = new Map(
+          products.map((product) => [product.id, product])
+        );
+
+        if (values.type === "OUTGOING") {
+          const insufficientItem = values.items.find((item) => {
+            const product = productMap.get(item.productId);
+            return product ? item.quantity > product.currentStock : false;
+          });
+
+          if (insufficientItem) {
+            const product = productMap.get(insufficientItem.productId);
+
+            return {
+              ok: false as const,
+              state: {
+                errors: {
+                  items: [
+                    `${product?.name ?? "Selected product"} does not have enough available stock for this outgoing request.`,
+                  ],
+                },
+                message:
+                  "Outgoing transactions cannot request more stock than is currently available.",
+              },
+            };
+          }
+        }
+
         const transaction = await tx.transaction.create({
           data: {
             transactionNumber,
@@ -252,11 +262,19 @@ export async function createTransaction(
             ipAddress: "127.0.0.1",
           },
         });
+
+        return {
+          ok: true as const,
+        };
       },
       {
         isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
       }
     );
+
+    if (!createResult.ok) {
+      return createResult.state;
+    }
 
     revalidateTransactionRoutes();
 
@@ -279,8 +297,9 @@ export async function approveTransaction(
   _state: MutationState,
   formData: FormData
 ): Promise<MutationState> {
+  const sessionUser = await requireCurrentUser(["ADMIN", "MANAGER"]);
+
   try {
-    const sessionUser = await requireCurrentUser(["ADMIN", "MANAGER"]);
     const values = parseTransactionDecisionFormData(formData);
 
     const approvedAt = new Date();
@@ -348,19 +367,47 @@ export async function approveTransaction(
 
         for (const item of transaction.items) {
           const stockBefore = item.product.currentStock;
-          const stockAfter =
-            transaction.type === "INCOMING"
-              ? stockBefore + item.quantity
-              : stockBefore - item.quantity;
-
-          await tx.product.update({
-            where: {
-              id: item.productId,
-            },
-            data: {
-              currentStock: stockAfter,
-            },
+          const stockAfter = getStockAfterMovement({
+            currentStock: stockBefore,
+            quantity: item.quantity,
+            type: transaction.type,
           });
+
+          const productUpdate =
+            transaction.type === "INCOMING"
+              ? await tx.product.updateMany({
+                  where: {
+                    id: item.productId,
+                    currentStock: stockBefore,
+                  },
+                  data: {
+                    currentStock: {
+                      increment: item.quantity,
+                    },
+                  },
+                })
+              : await tx.product.updateMany({
+                  where: {
+                    id: item.productId,
+                    currentStock: {
+                      gte: item.quantity,
+                    },
+                  },
+                  data: {
+                    currentStock: {
+                      decrement: item.quantity,
+                    },
+                  },
+                });
+
+          if (productUpdate.count !== 1) {
+            return {
+              ok: false as const,
+              state: {
+                message: `${item.product.name} changed during approval. Refresh and try again to avoid negative stock.`,
+              },
+            };
+          }
 
           await tx.transactionItem.update({
             where: {
@@ -437,8 +484,9 @@ export async function rejectTransaction(
   _state: MutationState,
   formData: FormData
 ): Promise<MutationState> {
+  const sessionUser = await requireCurrentUser(["ADMIN", "MANAGER"]);
+
   try {
-    const sessionUser = await requireCurrentUser(["ADMIN", "MANAGER"]);
     const values = parseTransactionDecisionFormData(formData);
 
     const rejectedAt = new Date();

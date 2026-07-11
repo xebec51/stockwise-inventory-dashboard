@@ -68,12 +68,34 @@ function revalidateCategoryRoutes() {
   revalidatePath("/dashboard/products");
 }
 
+async function requireCategoryManager(): Promise<MutationState | null> {
+  try {
+    await requireCurrentUser(["ADMIN"]);
+    return null;
+  } catch (error) {
+    if (error instanceof Error && error.message === "FORBIDDEN") {
+      return {
+        message: "Only admins can manage categories.",
+      };
+    }
+
+    return {
+      message: "You must be signed in to manage categories.",
+    };
+  }
+}
+
 export async function createCategory(
   _state: MutationState,
   formData: FormData
 ): Promise<MutationState> {
+  const authError = await requireCategoryManager();
+
+  if (authError) {
+    return authError;
+  }
+
   try {
-    await requireCurrentUser(["ADMIN"]);
     const values = parseCategoryFormData(formData);
     const slugError = await ensureUniqueCategorySlug(values.slug);
 
@@ -119,8 +141,13 @@ export async function updateCategory(
   _state: MutationState,
   formData: FormData
 ): Promise<MutationState> {
+  const authError = await requireCategoryManager();
+
+  if (authError) {
+    return authError;
+  }
+
   try {
-    await requireCurrentUser(["ADMIN"]);
     const values = parseCategoryFormData(formData);
 
     if (!values.id) {
@@ -166,18 +193,10 @@ export async function deleteCategory(
   _state: MutationState,
   formData: FormData
 ): Promise<MutationState> {
-  try {
-    await requireCurrentUser(["ADMIN"]);
-  } catch (error) {
-    if (error instanceof Error && error.message === "FORBIDDEN") {
-      return {
-        message: "Only admins can manage categories.",
-      };
-    }
+  const authError = await requireCategoryManager();
 
-    return {
-      message: "You must be signed in to delete categories.",
-    };
+  if (authError) {
+    return authError;
   }
 
   const id = formData.get("id")?.toString();

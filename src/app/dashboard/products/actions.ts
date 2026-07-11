@@ -101,12 +101,34 @@ function revalidateProductRoutes() {
   revalidatePath("/dashboard/categories");
 }
 
+async function requireProductManager(): Promise<MutationState | null> {
+  try {
+    await requireCurrentUser(["ADMIN"]);
+    return null;
+  } catch (error) {
+    if (error instanceof Error && error.message === "FORBIDDEN") {
+      return {
+        message: "Only admins can manage products.",
+      };
+    }
+
+    return {
+      message: "You must be signed in to manage products.",
+    };
+  }
+}
+
 export async function createProduct(
   _state: MutationState,
   formData: FormData
 ): Promise<MutationState> {
+  const authError = await requireProductManager();
+
+  if (authError) {
+    return authError;
+  }
+
   try {
-    await requireCurrentUser(["ADMIN"]);
     const values = parseProductFormData(formData);
 
     const [uniqueError, categoryExists] = await Promise.all([
@@ -165,8 +187,13 @@ export async function updateProduct(
   _state: MutationState,
   formData: FormData
 ): Promise<MutationState> {
+  const authError = await requireProductManager();
+
+  if (authError) {
+    return authError;
+  }
+
   try {
-    await requireCurrentUser(["ADMIN"]);
     const values = parseProductFormData(formData);
 
     if (!values.id) {
@@ -232,18 +259,10 @@ export async function deleteProduct(
   _state: MutationState,
   formData: FormData
 ): Promise<MutationState> {
-  try {
-    await requireCurrentUser(["ADMIN"]);
-  } catch (error) {
-    if (error instanceof Error && error.message === "FORBIDDEN") {
-      return {
-        message: "Only admins can manage products.",
-      };
-    }
+  const authError = await requireProductManager();
 
-    return {
-      message: "You must be signed in to delete products.",
-    };
+  if (authError) {
+    return authError;
   }
 
   const id = formData.get("id")?.toString();

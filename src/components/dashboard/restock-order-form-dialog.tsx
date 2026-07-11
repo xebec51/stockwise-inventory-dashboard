@@ -16,14 +16,14 @@ import { FormSubmitButton } from "@/components/dashboard/form-submit-button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -253,21 +253,24 @@ export function RestockOrderFormDialog({
   );
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger render={<Button size="sm" />}>
+    <Sheet open={open} onOpenChange={handleOpenChange}>
+      <SheetTrigger render={<Button size="sm" />}>
         <Plus className="size-4" />
         Create Restock Order
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-4xl">
-        <DialogHeader>
-          <DialogTitle>Create restock order</DialogTitle>
-          <DialogDescription>
+      </SheetTrigger>
+      <SheetContent
+        className="w-full overflow-y-auto sm:max-w-4xl"
+        side="right"
+      >
+        <SheetHeader className="border-b border-border/70">
+          <SheetTitle>Create restock order</SheetTitle>
+          <SheetDescription>
             Create a pending purchase order for a supplier with multiple product
             lines and estimated pricing.
-          </DialogDescription>
-        </DialogHeader>
+          </SheetDescription>
+        </SheetHeader>
 
-        <form action={formAction} className="space-y-4">
+        <form action={formAction} className="space-y-4 px-4 pb-4">
           <input type="hidden" name="managerId" value={currentUser.id} />
           <input type="hidden" name="supplierId" value={supplierId} />
           <input type="hidden" name="items" value={serializedItems} />
@@ -390,7 +393,7 @@ export function RestockOrderFormDialog({
             </div>
           </div>
 
-          <DialogFooter>
+          <SheetFooter className="border-t border-border/70 px-0">
             <Button
               type="button"
               variant="outline"
@@ -402,9 +405,9 @@ export function RestockOrderFormDialog({
               idleLabel="Create restock order"
               pendingLabel="Creating..."
             />
-          </DialogFooter>
+          </SheetFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }

@@ -8,6 +8,7 @@ import { Prisma } from "@/generated/prisma/client";
 import { type MutationState } from "@/lib/actions";
 import { requireCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getStockAfterMovement } from "@/lib/stock";
 import {
   restockOrderDecisionSchema,
   restockOrderFormSchema,
@@ -266,8 +267,9 @@ export async function createRestockOrder(
   _state: MutationState,
   formData: FormData
 ): Promise<MutationState> {
+  const sessionUser = await requireCurrentUser(["ADMIN", "MANAGER"]);
+
   try {
-    const sessionUser = await requireCurrentUser(["ADMIN", "MANAGER"]);
     const values = parseRestockOrderFormData(formData);
     const [poNumberError, manager, supplier] = await Promise.all([
       ensureUniquePoNumber(values.poNumber),
@@ -379,8 +381,9 @@ export async function confirmRestockOrder(
   _state: MutationState,
   formData: FormData
 ): Promise<MutationState> {
+  const sessionUser = await requireCurrentUser(["SUPPLIER"]);
+
   try {
-    const sessionUser = await requireCurrentUser(["SUPPLIER"]);
     const values = parseRestockDecisionFormData(formData);
     const restockOrder = await loadRestockOrderForDecision(values.id);
 
@@ -456,8 +459,9 @@ export async function rejectRestockOrder(
   _state: MutationState,
   formData: FormData
 ): Promise<MutationState> {
+  const sessionUser = await requireCurrentUser(["SUPPLIER"]);
+
   try {
-    const sessionUser = await requireCurrentUser(["SUPPLIER"]);
     const values = parseRestockDecisionFormData(formData);
     const restockOrder = await loadRestockOrderForDecision(values.id);
 
@@ -532,8 +536,9 @@ export async function markRestockOrderInTransit(
   _state: MutationState,
   formData: FormData
 ): Promise<MutationState> {
+  const sessionUser = await requireCurrentUser(["SUPPLIER"]);
+
   try {
-    const sessionUser = await requireCurrentUser(["SUPPLIER"]);
     const values = parseRestockDecisionFormData(formData);
     const restockOrder = await loadRestockOrderForDecision(values.id);
 
@@ -608,8 +613,9 @@ export async function receiveRestockOrder(
   _state: MutationState,
   formData: FormData
 ): Promise<MutationState> {
+  const sessionUser = await requireCurrentUser(["ADMIN", "MANAGER"]);
+
   try {
-    const sessionUser = await requireCurrentUser(["ADMIN", "MANAGER"]);
     const values = parseRestockDecisionFormData(formData);
     const restockOrder = await loadRestockOrderForDecision(values.id);
 
@@ -645,7 +651,7 @@ export async function receiveRestockOrder(
     const receivedAt = new Date();
     const transactionNumber = await generateTransactionNumber();
 
-    await prisma.$transaction(
+    const receiveResult = await prisma.$transaction(
       async (tx) => {
         await tx.restockOrder.update({
           where: { id: restockOrder.id },
@@ -676,14 +682,32 @@ export async function receiveRestockOrder(
 
         for (const item of restockOrder.items) {
           const stockBefore = item.product.currentStock;
-          const stockAfter = stockBefore + item.quantity;
+          const stockAfter = getStockAfterMovement({
+            currentStock: stockBefore,
+            quantity: item.quantity,
+            type: "INCOMING",
+          });
 
-          await tx.product.update({
-            where: { id: item.productId },
+          const productUpdate = await tx.product.updateMany({
+            where: {
+              id: item.productId,
+              currentStock: stockBefore,
+            },
             data: {
-              currentStock: stockAfter,
+              currentStock: {
+                increment: item.quantity,
+              },
             },
           });
+
+          if (productUpdate.count !== 1) {
+            return {
+              ok: false as const,
+              state: {
+                message: `${item.product.name} changed during receipt. Refresh and receive the order again.`,
+              },
+            };
+          }
 
           await tx.transactionItem.create({
             data: {
@@ -709,11 +733,19 @@ export async function receiveRestockOrder(
             ipAddress: "127.0.0.1",
           },
         });
+
+        return {
+          ok: true as const,
+        };
       },
       {
         isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
       }
     );
+
+    if (!receiveResult.ok) {
+      return receiveResult.state;
+    }
 
     revalidateRestockRoutes();
 
@@ -737,8 +769,9 @@ export async function createSupplierRating(
   _state: MutationState,
   formData: FormData
 ): Promise<MutationState> {
+  const sessionUser = await requireCurrentUser(["ADMIN", "MANAGER"]);
+
   try {
-    const sessionUser = await requireCurrentUser(["ADMIN", "MANAGER"]);
     const values = parseSupplierRatingFormData(formData);
     const restockOrder = await loadRestockOrderForDecision(values.restockOrderId);
 

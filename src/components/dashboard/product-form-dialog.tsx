@@ -14,14 +14,14 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -122,8 +122,8 @@ export function ProductFormDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger
+    <Sheet open={open} onOpenChange={handleOpenChange}>
+      <SheetTrigger
         render={
           mode === "create" ? (
             <Button size="sm" />
@@ -143,14 +143,17 @@ export function ProductFormDialog({
             {t("dialogs.edit")}
           </>
         )}
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-3xl">
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{description}</DialogDescription>
-        </DialogHeader>
+      </SheetTrigger>
+      <SheetContent
+        className="w-full overflow-y-auto sm:max-w-3xl"
+        side="right"
+      >
+        <SheetHeader className="border-b border-border/70">
+          <SheetTitle>{title}</SheetTitle>
+          <SheetDescription>{description}</SheetDescription>
+        </SheetHeader>
 
-        <form action={formAction} className="space-y-4">
+        <form action={formAction} className="space-y-4 px-4 pb-4">
           {product ? <input type="hidden" name="id" value={product.id} /> : null}
           <input type="hidden" name="categoryId" value={categoryValue} />
 
@@ -327,7 +330,7 @@ export function ProductFormDialog({
             </div>
           </div>
 
-          <DialogFooter>
+          <SheetFooter className="border-t border-border/70 px-0">
             <Button
               type="button"
               variant="outline"
@@ -339,9 +342,9 @@ export function ProductFormDialog({
               idleLabel={submitLabels.idle}
               pendingLabel={submitLabels.pending}
             />
-          </DialogFooter>
+          </SheetFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }

@@ -33,6 +33,32 @@ export function isInStock(currentStock: number, minimumStock: number) {
   return currentStock > minimumStock;
 }
 
+export function assertNonNegativeStock(value: number, label = "Stock") {
+  if (!Number.isInteger(value) || value < 0) {
+    throw new Error(`${label} cannot be negative.`);
+  }
+}
+
+export function getStockAfterMovement({
+  currentStock,
+  quantity,
+  type,
+}: {
+  currentStock: number;
+  quantity: number;
+  type: "INCOMING" | "OUTGOING";
+}) {
+  assertNonNegativeStock(currentStock, "Current stock");
+  assertNonNegativeStock(quantity, "Quantity");
+
+  const nextStock =
+    type === "INCOMING" ? currentStock + quantity : currentStock - quantity;
+
+  assertNonNegativeStock(nextStock, "Resulting stock");
+
+  return nextStock;
+}
+
 export function getStockStatusLabel(status: StockStatus) {
   switch (status) {
     case "OUT_OF_STOCK":
