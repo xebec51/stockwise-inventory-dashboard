@@ -65,14 +65,14 @@ export default async function CategoriesPage() {
           hint={t("categories.emptyHint")}
         />
       ) : (
-        <Card className="border-border/70 bg-background/80 shadow-sm shadow-black/5">
+        <Card className="stockwise-panel">
           <CardHeader>
             <CardTitle>{t("categories.tableTitle")}</CardTitle>
             <CardDescription>
               {t("categories.tableDescription", { count: categories.length })}
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>

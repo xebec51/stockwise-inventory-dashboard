@@ -201,7 +201,7 @@ export default async function DashboardPage() {
       />
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        <Card className="border-border/70 bg-background/80 shadow-sm shadow-black/5">
+        <Card className="stockwise-panel">
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <div className="space-y-1">
               <CardTitle className="text-sm font-medium">{t("dashboard.totalProducts")}</CardTitle>
@@ -214,7 +214,7 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-border/70 bg-background/80 shadow-sm shadow-black/5">
+        <Card className="stockwise-panel">
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <div className="space-y-1">
               <CardTitle className="text-sm font-medium">{t("dashboard.inventoryValue")}</CardTitle>
@@ -229,7 +229,7 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-border/70 bg-background/80 shadow-sm shadow-black/5">
+        <Card className="stockwise-panel border-amber-200/70 bg-amber-50/45 dark:border-amber-500/25 dark:bg-amber-500/10">
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <div className="space-y-1">
               <CardTitle className="text-sm font-medium">{t("dashboard.lowStock")}</CardTitle>
@@ -245,7 +245,7 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-border/70 bg-background/80 shadow-sm shadow-black/5">
+        <Card className="stockwise-panel">
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <div className="space-y-1">
               <CardTitle className="text-sm font-medium">{t("dashboard.pendingTransactions")}</CardTitle>
@@ -260,7 +260,7 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-border/70 bg-background/80 shadow-sm shadow-black/5">
+        <Card className="stockwise-panel">
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <div className="space-y-1">
               <CardTitle className="text-sm font-medium">{t("dashboard.activeRestocks")}</CardTitle>
@@ -275,7 +275,7 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-border/70 bg-background/80 shadow-sm shadow-black/5">
+        <Card className="stockwise-panel">
           <CardHeader className="space-y-1">
             <CardTitle className="text-sm font-medium">{t("dashboard.stockPressure")}</CardTitle>
             <CardDescription>{t("dashboard.stockPressureDescription")}</CardDescription>
@@ -284,7 +284,7 @@ export default async function DashboardPage() {
             {lowStockProducts.slice(0, 3).map((product) => (
               <div
                 key={product.id}
-                className="flex items-center justify-between rounded-xl border border-border/70 px-3 py-2"
+                className="flex items-center justify-between rounded-xl border border-border/70 bg-background/45 px-3 py-2"
               >
                 <div>
                   <p className="text-sm font-medium">{product.name}</p>
@@ -316,7 +316,7 @@ export default async function DashboardPage() {
       />
 
       <section className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
-        <Card className="border-border/70 bg-background/80 shadow-sm shadow-black/5">
+        <Card className="stockwise-panel">
           <CardHeader>
             <CardTitle>{t("dashboard.recentTransactions")}</CardTitle>
             <CardDescription>
@@ -327,7 +327,7 @@ export default async function DashboardPage() {
             {recentTransactions.map((transaction) => (
               <div
                 key={transaction.id}
-                className="rounded-2xl border border-border/70 bg-muted/25 p-4"
+                className="rounded-2xl border border-border/70 bg-muted/25 p-4 transition-colors hover:bg-muted/38"
               >
                 <div className="flex flex-wrap items-center gap-2">
                   <p className="font-medium">{transaction.transactionNumber}</p>
@@ -339,7 +339,7 @@ export default async function DashboardPage() {
                   </Badge>
                 </div>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  {transaction.creator.name} •{" "}
+                  {transaction.creator.name} -{" "}
                   {formatDateTime(transaction.transactionDate, { locale })}
                 </p>
                 <p className="mt-1 text-sm text-muted-foreground">
@@ -350,7 +350,7 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-border/70 bg-background/80 shadow-sm shadow-black/5">
+        <Card className="stockwise-panel">
           <CardHeader>
             <CardTitle>{t("dashboard.lowStockProducts")}</CardTitle>
             <CardDescription>
@@ -367,7 +367,7 @@ export default async function DashboardPage() {
               return (
                 <div
                   key={product.id}
-                  className="rounded-2xl border border-border/70 bg-muted/25 p-4"
+                  className="rounded-2xl border border-border/70 bg-muted/25 p-4 transition-colors hover:bg-muted/38"
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div>
@@ -385,7 +385,7 @@ export default async function DashboardPage() {
                     </Badge>
                   </div>
                   <p className="mt-2 text-sm text-muted-foreground">
-                    {t("dashboard.currentStockMinimum", {
+                    {t("dashboard.currentStockMinimumLabel", {
                       current: product.currentStock,
                       minimum: product.minimumStock,
                     })}

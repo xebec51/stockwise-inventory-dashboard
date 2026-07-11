@@ -18,6 +18,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/formatters";
+import { useI18n } from "@/lib/i18n/use-i18n";
 
 type MovementPoint = {
   label: string;
@@ -35,25 +36,19 @@ type InventoryAnalyticsChartsProps = {
   movementData: MovementPoint[];
 };
 
-function formatAxisCurrency(value: number) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  }).format(value);
-}
-
 export function InventoryAnalyticsCharts({
   categoryData,
   movementData,
 }: InventoryAnalyticsChartsProps) {
+  const { locale, t } = useI18n();
+
   return (
     <div className="grid gap-4 xl:grid-cols-2">
-      <Card className="border-border/70 bg-background/80 shadow-sm shadow-black/5">
+      <Card className="stockwise-panel">
         <CardHeader>
-          <CardTitle>Incoming vs outgoing volume</CardTitle>
+          <CardTitle>{t("dashboard.incomingVsOutgoing")}</CardTitle>
           <CardDescription>
-            Approved and completed stock movement quantities grouped by month.
+            {t("dashboard.incomingVsOutgoingDescription")}
           </CardDescription>
         </CardHeader>
         <CardContent className="h-80">
@@ -63,18 +58,18 @@ export function InventoryAnalyticsCharts({
               <XAxis dataKey="label" />
               <YAxis allowDecimals={false} />
               <Tooltip />
-              <Bar dataKey="incoming" name="Incoming" fill="var(--color-chart-2, #16a34a)" radius={[8, 8, 0, 0]} />
-              <Bar dataKey="outgoing" name="Outgoing" fill="var(--color-chart-4, #ea580c)" radius={[8, 8, 0, 0]} />
+              <Bar dataKey="incoming" name={t("statuses.transaction.INCOMING")} fill="var(--color-chart-2, #16a34a)" radius={[8, 8, 0, 0]} />
+              <Bar dataKey="outgoing" name={t("statuses.transaction.OUTGOING")} fill="var(--color-chart-4, #ea580c)" radius={[8, 8, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
 
-      <Card className="border-border/70 bg-background/80 shadow-sm shadow-black/5">
+      <Card className="stockwise-panel">
         <CardHeader>
-          <CardTitle>Inventory value by category</CardTitle>
+          <CardTitle>{t("dashboard.inventoryValueByCategory")}</CardTitle>
           <CardDescription>
-            Current on-hand inventory value based on purchase price and stock.
+            {t("dashboard.inventoryValueByCategoryDescription")}
           </CardDescription>
         </CardHeader>
         <CardContent className="h-80">
@@ -83,7 +78,9 @@ export function InventoryAnalyticsCharts({
               <CartesianGrid strokeDasharray="3 3" horizontal={false} />
               <XAxis
                 type="number"
-                tickFormatter={(value: number) => formatAxisCurrency(value)}
+                tickFormatter={(value: number) =>
+                  formatCurrency(value, { locale })
+                }
               />
               <YAxis
                 type="category"
@@ -97,10 +94,10 @@ export function InventoryAnalyticsCharts({
                   const numericValue =
                     typeof value === "number" ? value : Number(value ?? 0);
 
-                  return formatCurrency(numericValue);
+                  return formatCurrency(numericValue, { locale });
                 }}
               />
-              <Bar dataKey="value" name="Inventory Value" fill="var(--color-chart-1, #2563eb)" radius={[0, 8, 8, 0]} />
+              <Bar dataKey="value" name={t("dashboard.inventoryValue")} fill="var(--color-chart-1, #2563eb)" radius={[0, 8, 8, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>

@@ -115,6 +115,12 @@ export const id = {
     inventoryIntelligence: "Intelijen inventaris",
     sidebarDescription:
       "Navigasi difilter berdasarkan izin yang tersedia untuk peran ini.",
+    sidebarMode: "Mode",
+    sidebarScope: "Cakupan",
+    sidebarRisk: "Risiko",
+    sidebarLive: "Live",
+    sidebarOps: "Ops",
+    sidebarWatch: "Pantau",
     mobileDescription:
       "Masuk dengan akses workspace StockWise berbasis peran.",
     commandCenter: "Pusat komando gudang",
@@ -142,8 +148,15 @@ export const id = {
     lowStockProducts: "Produk stok rendah",
     lowStockProductsDescription:
       "Produk yang berisiko kehabisan stok berdasarkan ambang saat ini.",
-    currentStockMinimum: "Stok saat ini {current} • Minimum {minimum}",
+    currentStockMinimum: "Stok saat ini {current} - Minimum {minimum}",
     healthyThresholds: "Ambang inventaris terlihat sehat di seluruh katalog.",
+    currentStockMinimumLabel: "Stok saat ini {current} - Minimum {minimum}",
+    incomingVsOutgoing: "Volume masuk vs keluar",
+    incomingVsOutgoingDescription:
+      "Kuantitas pergerakan stok yang disetujui dan selesai dikelompokkan per bulan.",
+    inventoryValueByCategory: "Nilai inventaris per kategori",
+    inventoryValueByCategoryDescription:
+      "Nilai inventaris tersedia saat ini berdasarkan harga beli dan stok.",
   },
   products: {
     eyebrow: "Produk",

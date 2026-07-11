@@ -23,6 +23,7 @@ export function LanguageSwitcher() {
             type="button"
             variant="outline"
             size="sm"
+            className="rounded-full bg-card/72"
             aria-label={t("common.language")}
           />
         }
@@ -38,7 +39,7 @@ export function LanguageSwitcher() {
             className="flex items-center justify-between gap-3"
           >
             <span>{localeConfig[value].label}</span>
-            {locale === value ? <span>•</span> : null}
+            {locale === value ? <span aria-hidden="true">{"*"}</span> : null}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>

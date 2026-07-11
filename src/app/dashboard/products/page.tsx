@@ -116,14 +116,14 @@ export default async function ProductsPage() {
           hint={t("products.emptyHint")}
         />
       ) : (
-        <Card className="border-border/70 bg-background/80 shadow-sm shadow-black/5">
+        <Card className="stockwise-panel">
           <CardHeader>
             <CardTitle>{t("products.tableTitle")}</CardTitle>
             <CardDescription>
               {t("products.tableDescription", { count: products.length })}
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>

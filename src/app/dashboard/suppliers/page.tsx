@@ -140,7 +140,7 @@ export default async function SuppliersPage() {
       />
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <Card className="border-border/70 bg-background/80 shadow-sm shadow-black/5">
+        <Card className="stockwise-panel">
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <div className="space-y-1">
               <CardTitle className="text-sm font-medium">
@@ -157,7 +157,7 @@ export default async function SuppliersPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-border/70 bg-background/80 shadow-sm shadow-black/5">
+        <Card className="stockwise-panel">
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <div className="space-y-1">
               <CardTitle className="text-sm font-medium">{t("suppliers.active")}</CardTitle>
@@ -175,7 +175,7 @@ export default async function SuppliersPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-border/70 bg-background/80 shadow-sm shadow-black/5">
+        <Card className="stockwise-panel">
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <div className="space-y-1">
               <CardTitle className="text-sm font-medium">{t("suppliers.openRestocks")}</CardTitle>
@@ -190,7 +190,7 @@ export default async function SuppliersPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-border/70 bg-background/80 shadow-sm shadow-black/5">
+        <Card className="stockwise-panel">
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <div className="space-y-1">
               <CardTitle className="text-sm font-medium">{t("suppliers.averageRating")}</CardTitle>
@@ -214,7 +214,7 @@ export default async function SuppliersPage() {
           hint={t("suppliers.emptyHint")}
         />
       ) : (
-        <Card className="border-border/70 bg-background/80 shadow-sm shadow-black/5">
+        <Card className="stockwise-panel">
           <CardHeader>
             <CardTitle>{t("suppliers.tableTitle")}</CardTitle>
             <CardDescription>

@@ -119,7 +119,7 @@ export default async function ReportsPage() {
       />
 
       <div className="grid gap-4 xl:grid-cols-2">
-        <Card className="border-border/70 bg-background/80 shadow-sm shadow-black/5">
+        <Card className="stockwise-panel">
           <CardHeader>
             <div className="flex items-center gap-3">
               <div className="flex size-10 items-center justify-center rounded-2xl bg-primary/8 text-primary ring-1 ring-primary/10">
@@ -145,7 +145,7 @@ export default async function ReportsPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-border/70 bg-background/80 shadow-sm shadow-black/5">
+        <Card className="stockwise-panel">
           <CardHeader>
             <div className="flex items-center gap-3">
               <div className="flex size-10 items-center justify-center rounded-2xl bg-primary/8 text-primary ring-1 ring-primary/10">
@@ -172,7 +172,7 @@ export default async function ReportsPage() {
         </Card>
       </div>
 
-      <Card className="border-border/70 bg-background/80 shadow-sm shadow-black/5">
+      <Card className="stockwise-panel">
         <CardHeader>
           <div className="flex items-center gap-3">
             <div className="flex size-10 items-center justify-center rounded-2xl bg-primary/8 text-primary ring-1 ring-primary/10">
@@ -190,12 +190,12 @@ export default async function ReportsPage() {
           {transactions.slice(0, 5).map((transaction) => (
             <div
               key={transaction.transactionNumber}
-              className="rounded-2xl border border-border/70 bg-muted/25 p-4"
+            className="rounded-2xl border border-border/70 bg-muted/25 p-4 transition-colors hover:bg-muted/38"
             >
               <p className="font-medium">{transaction.transactionNumber}</p>
               <p className="text-sm text-muted-foreground">
-                {translateTransactionStatus(transaction.type, locale)} •{" "}
-                {translateTransactionStatus(transaction.status, locale)} •{" "}
+                {translateTransactionStatus(transaction.type, locale)} -{" "}
+                {translateTransactionStatus(transaction.status, locale)} -{" "}
                 {formatDateTime(transaction.transactionDate, { locale })}
               </p>
             </div>

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronRight, Command } from "lucide-react";
+import { Activity, ChevronRight, Command } from "lucide-react";
 
 import type { DashboardNavItem } from "@/config/dashboard-nav";
 import { Badge } from "@/components/ui/badge";
@@ -40,10 +40,13 @@ export function DashboardTopbar({
   const currentPageLabel = t(currentPage.titleKey);
 
   return (
-    <header className="sticky top-0 z-20 border-b border-border/70 bg-background/90 backdrop-blur">
+    <header className="sticky top-0 z-20 border-b border-border/70 bg-background/82 backdrop-blur-xl">
       <div className="flex min-h-18 items-center justify-between gap-4 px-4 py-3 sm:px-6">
         <div className="flex min-w-0 items-center gap-3">
           <DashboardMobileNav currentUser={currentUser} navItems={navItems} />
+          <div className="hidden size-10 items-center justify-center rounded-2xl border border-border/70 bg-card/80 text-primary shadow-sm shadow-black/5 md:flex">
+            <Activity className="size-4" />
+          </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Link href="/dashboard" className="hover:text-foreground">
@@ -58,7 +61,7 @@ export function DashboardTopbar({
                 </>
               )}
             </div>
-            <p className="truncate text-lg font-semibold tracking-tight">
+            <p className="truncate text-lg font-semibold tracking-tight sm:text-xl">
               {currentPageLabel}
             </p>
           </div>
@@ -66,10 +69,10 @@ export function DashboardTopbar({
 
         <div className="flex items-center gap-2 sm:gap-3">
           <LanguageSwitcher />
-          <Badge variant="outline" className="hidden sm:inline-flex">
+          <Badge variant="outline" className="hidden border-cyan-200/70 bg-cyan-50/70 text-cyan-800 sm:inline-flex dark:border-cyan-500/25 dark:bg-cyan-500/10 dark:text-cyan-100">
             {translateRole(currentUser.role, locale)}
           </Badge>
-          <Button variant="outline" size="sm" className="hidden md:inline-flex">
+          <Button variant="outline" size="sm" className="hidden rounded-full bg-card/70 md:inline-flex">
             <Command className="size-4" />
             {translateUserStatus(currentUser.status, locale)}
           </Button>

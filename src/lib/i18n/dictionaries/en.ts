@@ -115,6 +115,12 @@ export const en = {
     inventoryIntelligence: "Inventory intelligence",
     sidebarDescription:
       "Navigation is filtered by the permissions available to this role.",
+    sidebarMode: "Mode",
+    sidebarScope: "Scope",
+    sidebarRisk: "Risk",
+    sidebarLive: "Live",
+    sidebarOps: "Ops",
+    sidebarWatch: "Watch",
     mobileDescription:
       "Signed in with role-aware access to the StockWise workspace.",
     commandCenter: "Warehouse command center",
@@ -142,8 +148,15 @@ export const en = {
     lowStockProducts: "Low stock products",
     lowStockProductsDescription:
       "Products at risk of stockout based on current thresholds.",
-    currentStockMinimum: "Current stock {current} • Minimum {minimum}",
+    currentStockMinimum: "Current stock {current} - Minimum {minimum}",
     healthyThresholds: "Inventory thresholds look healthy across the catalog.",
+    currentStockMinimumLabel: "Current stock {current} - Minimum {minimum}",
+    incomingVsOutgoing: "Incoming vs outgoing volume",
+    incomingVsOutgoingDescription:
+      "Approved and completed stock movement quantities grouped by month.",
+    inventoryValueByCategory: "Inventory value by category",
+    inventoryValueByCategoryDescription:
+      "Current on-hand inventory value based on purchase price and stock.",
   },
   products: {
     eyebrow: "Products",

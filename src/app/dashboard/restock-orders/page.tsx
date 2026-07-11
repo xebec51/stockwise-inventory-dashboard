@@ -217,7 +217,7 @@ export default async function RestockOrdersPage() {
       />
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <Card className="border-border/70 bg-background/80 shadow-sm shadow-black/5">
+        <Card className="stockwise-panel">
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <div className="space-y-1">
               <CardTitle className="text-sm font-medium">{t("restockOrders.pending")}</CardTitle>
@@ -232,7 +232,7 @@ export default async function RestockOrdersPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-border/70 bg-background/80 shadow-sm shadow-black/5">
+        <Card className="stockwise-panel">
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <div className="space-y-1">
               <CardTitle className="text-sm font-medium">{t("restockOrders.inTransit")}</CardTitle>
@@ -247,7 +247,7 @@ export default async function RestockOrdersPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-border/70 bg-background/80 shadow-sm shadow-black/5">
+        <Card className="stockwise-panel">
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <div className="space-y-1">
               <CardTitle className="text-sm font-medium">{t("restockOrders.received")}</CardTitle>
@@ -262,7 +262,7 @@ export default async function RestockOrdersPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-border/70 bg-background/80 shadow-sm shadow-black/5">
+        <Card className="stockwise-panel">
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <div className="space-y-1">
               <CardTitle className="text-sm font-medium">{t("restockOrders.rejected")}</CardTitle>
@@ -286,7 +286,7 @@ export default async function RestockOrdersPage() {
           hint={t("restockOrders.emptyHint")}
         />
       ) : (
-        <Card className="border-border/70 bg-background/80 shadow-sm shadow-black/5">
+        <Card className="stockwise-panel">
           <CardHeader>
             <CardTitle>{t("restockOrders.tableTitle")}</CardTitle>
             <CardDescription>

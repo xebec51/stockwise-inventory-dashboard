@@ -199,7 +199,7 @@ export default async function TransactionsPage() {
       />
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <Card className="border-border/70 bg-background/80 shadow-sm shadow-black/5">
+        <Card className="stockwise-panel">
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <div className="space-y-1">
               <CardTitle className="text-sm font-medium">{t("transactions.pendingReview")}</CardTitle>
@@ -214,7 +214,7 @@ export default async function TransactionsPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-border/70 bg-background/80 shadow-sm shadow-black/5">
+        <Card className="stockwise-panel">
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <div className="space-y-1">
               <CardTitle className="text-sm font-medium">{t("transactions.approvedDone")}</CardTitle>
@@ -229,7 +229,7 @@ export default async function TransactionsPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-border/70 bg-background/80 shadow-sm shadow-black/5">
+        <Card className="stockwise-panel">
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <div className="space-y-1">
               <CardTitle className="text-sm font-medium">{t("transactions.rejected")}</CardTitle>
@@ -244,7 +244,7 @@ export default async function TransactionsPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-border/70 bg-background/80 shadow-sm shadow-black/5">
+        <Card className="stockwise-panel">
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <div className="space-y-1">
               <CardTitle className="text-sm font-medium">{t("transactions.itemLines")}</CardTitle>
@@ -268,7 +268,7 @@ export default async function TransactionsPage() {
           hint={t("transactions.emptyHint")}
         />
       ) : (
-        <Card className="border-border/70 bg-background/80 shadow-sm shadow-black/5">
+        <Card className="stockwise-panel">
           <CardHeader>
             <CardTitle>{t("transactions.tableTitle")}</CardTitle>
             <CardDescription>
