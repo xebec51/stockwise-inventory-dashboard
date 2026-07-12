@@ -79,6 +79,8 @@ StockWise uses a restrained teal-and-graphite identity inspired by inventory int
 - Transaction workflow with pending, approval, rejection, and stock audit fields
 - Restock order workflow with supplier confirmation, transit, receipt, and ratings
 - Analytics dashboard with inventory value, stock risk, recent movements, and charts
+- Self-service account profile with password change and a personal activity feed
+- Admin activity log audit trail with module filters and summary stats
 - QR label generation for products
 - CSV/XLSX exports for products and transactions
 - English and Bahasa Indonesia language switcher with persisted preference
@@ -117,6 +119,21 @@ StockWise uses a restrained teal-and-graphite identity inspired by inventory int
 - export transaction history with item-level audit fields
 - display and download product QR labels
 - keep exports disabled when no rows are available
+
+### Account Profile
+
+- every role gets a self-service profile at `/dashboard/profile`
+- edit name, email, phone, and avatar with live preview
+- change password with current-password verification
+- role-aware activity snapshot (transactions created/approved, restock orders managed, supplier ratings given)
+- linked supplier company summary for supplier accounts
+- recent personal activity feed backed by `activity_logs`
+
+### Activity Logs
+
+- admin-only audit trail at `/dashboard/activity-logs` backed by `activity_logs`
+- summary stats: total events, events today, active users, most active module
+- module filter chips and a detailed table with user, action, module, and description columns
 
 ### Authentication & Access Control
 
@@ -236,6 +253,7 @@ Important rules:
 - `/dashboard/reports`
 - `/dashboard/activity-logs`
 - `/dashboard/settings`
+- `/dashboard/profile`
 
 ---
 
