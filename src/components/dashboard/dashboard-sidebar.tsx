@@ -31,14 +31,17 @@ export async function DashboardSidebar({
         </p>
       </Link>
 
-      <div className="mt-6 border-y border-white/10 py-4">
+      <Link
+        href="/dashboard/profile"
+        className="-mx-5 mt-6 block border-y border-white/10 px-5 py-4 transition-colors hover:bg-sidebar-accent"
+      >
         <p className="text-xs font-medium text-sidebar-primary">
           {translateRole(currentUser.role, locale)}
         </p>
-        <p className="mt-2 text-sm font-medium">
+        <p className="mt-2 truncate text-sm font-medium">
           {t("common.signedInAs")} {currentUser.name}.
         </p>
-      </div>
+      </Link>
 
       <Separator className="my-5 bg-white/10" />
 

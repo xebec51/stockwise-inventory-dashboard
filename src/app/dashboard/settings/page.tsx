@@ -1,12 +1,15 @@
 import type { ReactNode } from "react";
-import { Code2, ExternalLink, Mail, Settings } from "lucide-react";
+import { Code2, ExternalLink, Mail, Settings, UserCircle2 } from "lucide-react";
+import Link from "next/link";
 
 import { StockWiseMark } from "@/components/brand/stockwise-logo";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { PlaceholderState } from "@/components/dashboard/placeholder-state";
+import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { getServerTranslator } from "@/lib/i18n/server";
 import { requireDashboardPathAccess } from "@/lib/auth";
+import { cn } from "@/lib/utils";
 
 export default async function SettingsPage() {
   await requireDashboardPathAccess("/dashboard/settings");
@@ -19,6 +22,29 @@ export default async function SettingsPage() {
         title={t("settings.title")}
         description={t("settings.description")}
       />
+      <Card className="stockwise-panel">
+        <CardContent className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-primary/8 text-primary ring-1 ring-primary/10">
+              <UserCircle2 className="size-5" />
+            </div>
+            <div>
+              <h2 className="text-base font-semibold">
+                {t("settings.profileCalloutTitle")}
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {t("settings.profileCalloutDescription")}
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/dashboard/profile"
+            className={cn(buttonVariants({ size: "sm" }), "shrink-0")}
+          >
+            {t("settings.profileCalloutCta")}
+          </Link>
+        </CardContent>
+      </Card>
       <PlaceholderState
         icon={Settings}
         title={t("settings.placeholderTitle")}

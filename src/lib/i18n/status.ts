@@ -33,3 +33,17 @@ export function translateRestockStatus(
 ) {
   return getTranslator(locale)(`statuses.restock.${status}`);
 }
+
+export function translateActivityModule(
+  module: string,
+  locale: Locale = defaultLocale
+) {
+  return getTranslator(locale)(`activityLogs.modules.${module}`);
+}
+
+export function translateActivityAction(
+  action: string,
+  locale: Locale = defaultLocale
+) {
+  return getTranslator(locale)(`activityLogs.actions.${action}`);
+}

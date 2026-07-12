@@ -15,6 +15,7 @@ const roleAccessMap: RoleAccessMap = {
     "/dashboard/reports",
     "/dashboard/activity-logs",
     "/dashboard/settings",
+    "/dashboard/profile",
   ],
   MANAGER: [
     "/dashboard",
@@ -24,14 +25,21 @@ const roleAccessMap: RoleAccessMap = {
     "/dashboard/suppliers",
     "/dashboard/reports",
     "/dashboard/settings",
+    "/dashboard/profile",
   ],
   STAFF: [
     "/dashboard",
     "/dashboard/products",
     "/dashboard/transactions",
     "/dashboard/settings",
+    "/dashboard/profile",
   ],
-  SUPPLIER: ["/dashboard", "/dashboard/restock-orders", "/dashboard/settings"],
+  SUPPLIER: [
+    "/dashboard",
+    "/dashboard/restock-orders",
+    "/dashboard/settings",
+    "/dashboard/profile",
+  ],
 };
 
 export function canAccessDashboardPath(role: AppRole, pathname: string) {

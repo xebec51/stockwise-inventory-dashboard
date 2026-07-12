@@ -2,13 +2,21 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, LogOut, UserCircle2 } from "lucide-react";
+import { signOut } from "next-auth/react";
 
 import { StockWiseMark } from "@/components/brand/stockwise-logo";
 import type { DashboardNavItem } from "@/config/dashboard-nav";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { DashboardMobileNav } from "@/components/dashboard/dashboard-mobile-nav";
-import { SignOutButton } from "@/components/dashboard/sign-out-button";
 import type { AuthSessionUser } from "@/lib/auth";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { translateRole } from "@/lib/i18n/status";
@@ -66,24 +74,61 @@ export function DashboardTopbar({
 
         <div className="flex items-center gap-2 sm:gap-3">
           <LanguageSwitcher />
-          <span className="hidden text-sm text-muted-foreground sm:inline">
+          <span className="hidden text-sm text-muted-foreground lg:inline">
             {translateRole(currentUser.role, locale)}
           </span>
-          <div className="hidden items-center gap-3 md:flex">
-            <div className="text-right">
-              <p className="text-sm font-medium">{currentUser.name}</p>
-              <p className="text-xs text-muted-foreground">
-                {currentUser.email}
-              </p>
-            </div>
-            <SignOutButton />
-          </div>
-          <Avatar size="sm">
-            <AvatarImage src={currentUser.image ?? undefined} alt={currentUser.name ?? "User"} />
-            <AvatarFallback>
-              {currentUser.name?.slice(0, 2).toUpperCase() ?? "SW"}
-            </AvatarFallback>
-          </Avatar>
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <button
+                  type="button"
+                  aria-label={t("profile.accountMenuLabel")}
+                  className="flex items-center gap-2.5 rounded-full p-0.5 outline-none transition hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/50 md:rounded-lg md:py-1 md:pr-3"
+                />
+              }
+            >
+              <Avatar size="sm">
+                <AvatarImage
+                  src={currentUser.image ?? undefined}
+                  alt={currentUser.name ?? "User"}
+                />
+                <AvatarFallback>
+                  {currentUser.name?.slice(0, 2).toUpperCase() ?? "SW"}
+                </AvatarFallback>
+              </Avatar>
+              <span className="hidden min-w-0 text-left md:block">
+                <span className="block max-w-40 truncate text-sm font-medium">
+                  {currentUser.name}
+                </span>
+                <span className="block max-w-40 truncate text-xs text-muted-foreground">
+                  {currentUser.email}
+                </span>
+              </span>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-60">
+              <DropdownMenuLabel className="px-2 py-1.5">
+                <span className="block truncate text-sm font-medium text-foreground">
+                  {currentUser.name}
+                </span>
+                <span className="block truncate text-xs font-normal text-muted-foreground">
+                  {currentUser.email}
+                </span>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem render={<Link href="/dashboard/profile" />}>
+                <UserCircle2 className="size-4" />
+                {t("profile.viewProfile")}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                variant="destructive"
+                onClick={() => signOut({ callbackUrl: "/login" })}
+              >
+                <LogOut className="size-4" />
+                {t("common.signOut")}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </header>
