@@ -60,7 +60,7 @@ export default async function Home() {
       <section className="mx-auto grid max-w-7xl items-center gap-12 px-5 py-16 sm:px-8 lg:grid-cols-[1.05fr_0.75fr] lg:py-24">
         <div className="max-w-3xl space-y-7">
           <p className="text-sm font-medium text-primary">{t("landing.eyebrow")}</p>
-          <h1 className="text-5xl font-semibold leading-[1.04] tracking-tight text-foreground sm:text-6xl">
+          <h1 className="text-4xl font-semibold leading-[1.08] tracking-tight text-balance text-foreground sm:text-5xl lg:text-6xl lg:leading-[1.04]">
             {t("landing.title")}
           </h1>
           <p className="max-w-2xl text-lg leading-8 text-muted-foreground">

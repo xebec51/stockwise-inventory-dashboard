@@ -419,9 +419,9 @@ export default async function RestockOrdersPage() {
 
 function SummaryValue({ label, value, warning = false }: { label: string; value: number; warning?: boolean }) {
   return (
-    <div>
+    <div className="min-w-0">
       <p className="text-sm text-muted-foreground">{label}</p>
-      <p className={warning && value > 0 ? "mt-2 text-2xl font-semibold text-warning" : "mt-2 text-2xl font-semibold"}>{value}</p>
+      <p className={warning && value > 0 ? "mt-2 truncate text-xl font-semibold text-warning sm:text-2xl" : "mt-2 truncate text-xl font-semibold sm:text-2xl"}>{value}</p>
     </div>
   );
 }

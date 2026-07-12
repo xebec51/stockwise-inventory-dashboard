@@ -205,5 +205,10 @@ export default async function DashboardPage() {
 
 function Metric({ label, value, warning = false, danger = false }: { label: string; value: string; warning?: boolean; danger?: boolean }) {
   const tone = danger ? "text-destructive" : warning ? "text-warning" : "text-foreground";
-  return <div><p className="text-sm text-muted-foreground">{label}</p><p className={`mt-2 text-2xl font-semibold ${tone}`}>{value}</p></div>;
+  return (
+    <div className="min-w-0">
+      <p className="text-sm text-muted-foreground">{label}</p>
+      <p className={`mt-2 truncate text-xl font-semibold sm:text-2xl ${tone}`}>{value}</p>
+    </div>
+  );
 }

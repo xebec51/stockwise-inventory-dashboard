@@ -297,5 +297,10 @@ export default async function SuppliersPage() {
 }
 
 function SummaryValue({ label, value }: { label: string; value: string }) {
-  return <div><p className="text-sm text-muted-foreground">{label}</p><p className="mt-2 text-2xl font-semibold">{value}</p></div>;
+  return (
+    <div className="min-w-0">
+      <p className="text-sm text-muted-foreground">{label}</p>
+      <p className="mt-2 truncate text-xl font-semibold sm:text-2xl">{value}</p>
+    </div>
+  );
 }
