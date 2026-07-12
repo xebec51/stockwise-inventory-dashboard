@@ -26,7 +26,7 @@ export async function DashboardSidebar({
     <aside className="sticky top-0 hidden h-screen w-72 shrink-0 flex-col overflow-hidden border-r border-sidebar-border bg-sidebar px-5 py-5 text-sidebar-foreground lg:flex">
       <Link href="/" className="rounded-md px-2 py-1 outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring">
         <StockWiseLogo variant="inverse" />
-        <p className="mt-1 pl-[3.25rem] text-xs text-sidebar-foreground/55">
+        <p className="mt-1 pl-13 text-xs text-sidebar-foreground/55">
           {t("dashboard.inventoryIntelligence")}
         </p>
       </Link>
